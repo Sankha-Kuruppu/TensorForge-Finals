@@ -19,7 +19,7 @@ from jobshield.features import text_hash
 from jobshield.models import ReferenceProfile, build_embedding_clf, build_tfidf, confidence, embed
 
 EMB_CACHE = ARTIFACTS_DIR / "embeddings"
-REVIEWED_WEIGHT = 5.0
+REVIEWED_WEIGHT = 1.0
 
 
 def load_split(name: str) -> pd.DataFrame:
@@ -108,10 +108,10 @@ def train(extra: str | None = None, version: str | None = None) -> dict:
 
     val_p = predict_all(val_df, val_emb)
     thrs = {m: best_threshold(val_df.label.values, p) for m, p in val_p.items()}
-    # monitoring reference = in-domain (Sri Lankan) validation traffic
-    sl_val = (val_df.source == "synthetic_sl_current").values
-    ref_emb = val_emb[sl_val]
-    ref_conf = confidence(val_p["ensemble"][sl_val], thrs["ensemble"])
+    # monitoring reference = a separate sample of normal Sri Lankan traffic
+    ref_df = load_split("monitor_ref")
+    ref_emb = cached_embed("monitor_ref", ref_df)
+    ref_conf = confidence(predict_all(ref_df, ref_emb)["ensemble"], thrs["ensemble"])
     if extra_df is not None:
         # reviewed posts are the "new normal" the monitor should now expect
         ref_emb = np.vstack([ref_emb, extra_emb])
