@@ -26,15 +26,6 @@
 
 JobShield LK detects fake overseas job offers and illegal recruiter posts in English, Sinhala and Singlish, to protect Sri Lankan migrant workers and their families from recruitment fraud, and flags when scammers change tactics (new destinations, fee tricks or channels) so suspect posts go to human review and retraining instead of slipping through.
 
-## Impact statement
-
-- **Who is protected:** Sri Lankan migrant workers (predominantly rural, first-time job seekers, youth pursuing high-salary corridors, and female domestic workers) and their extended families who finance foreign departures through pawned gold or debt.
-- **How many people could be reached:** **~313,000 workers departed in 2024 alone**, representing a broader applicant pool of **1.2–1.5 million people annually**. Year 1 target: **100,000+ citizens reached** and **50,000+ job offers audited**.
-- **Measurable harm prevented:** Avoids catastrophic losses of **LKR 150,000–1,500,000 per victim** (projected **> LKR 500M saved in Year 1**), eliminates high-interest debt traps/asset forfeiture, and prevents human trafficking into cyber-scam compounds.
-- **Realistic path to adoption:** Phased rollout from a free citizen web/WhatsApp checker (Months 0–1) to SLBFE Special Investigation Unit (SIU) triage integration (Months 2–3), 25 District Office deployment (Months 4–6), and CBSL/CERT/Police partnerships (Months 7–12), running on a zero-marginal-cost CPU setup (< $15/mo).
-
-See the full one-page impact brief in [IMPACT.md](IMPACT.md).
-
 ## What it does
 
 1. **Detects:** paste a job post or message in English, Sinhala or Singlish and get a risk decision, a score and the warning signs found (upfront fee, guaranteed visa, chat-app-only contact, crypto/QR payment…).
