@@ -26,6 +26,14 @@
 
 JobShield LK detects fake overseas job offers and illegal recruiter posts in English, Sinhala and Singlish, to protect Sri Lankan migrant workers and their families from recruitment fraud, and flags when scammers change tactics (new destinations, fee tricks or channels) so suspect posts go to human review and retraining instead of slipping through.
 
+## Who we protect
+
+- **People looking for work abroad**, about 313,000 of whom left in 2024 alone. They answer "Korea / Israel / Europe / Gulf job" posts on Facebook, TikTok and WhatsApp.
+- **Their families**, who borrow or pawn jewellery to pay the "agency fee", "visa fee" or "deposit".
+- **First-time and rural job seekers** with no easy way to check whether an agency is licensed.
+
+The impact case is summarised under [Impact](#impact) and in full in [IMPACT.md](IMPACT.md).
+
 ## What it does
 
 1. **Detects:** paste a job post or message in English, Sinhala or Singlish and get a risk decision, a score and the warning signs found (upfront fee, guaranteed visa, chat-app-only contact, crypto/QR payment…).
