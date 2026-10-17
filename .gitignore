@@ -5,6 +5,10 @@ venv/
 .env
 *.db
 logs/
-models/*.joblib
+artifacts/
+data/raw/
 .ipynb_checkpoints/
 .DS_Store
+
+# team notes, never committed
+private/
