@@ -13,6 +13,7 @@ Response to drift (no silent failure):
 """
 import json
 import logging
+import random
 import threading
 
 import joblib
@@ -29,7 +30,10 @@ REGISTRY = MODELS_DIR / "registry.json"
 WINDOW = 50
 REVIEW_BAND = 0.25          # confidence below this goes to human review
 SAFE_MODE_REVIEW_BAND = 0.5
-MIN_REVIEWS_TO_RETRAIN = 30
+# too few labels teach the wrong lesson (tested: ~100 labels made the model distrust
+# genuine SLBFE-licensed Sinhala posts); ~200+ labels learn the new tactic safely
+MIN_REVIEWS_TO_RETRAIN = 200
+AUDIT_RATE = 0.3            # share of confident answers also reviewed during an alert
 MAX_TEST_F1_DROP = 0.02
 
 log = logging.getLogger("jobshield")
@@ -65,6 +69,7 @@ class JobShield:
         self.retraining = False
         self.last_level = "OK"
         self._lock = threading.Lock()
+        self._rng = random.Random(0)
         self.load_champion()
 
     # -- model ------------------------------------------------------------
@@ -110,6 +115,10 @@ class JobShield:
         pid = self.store.log_prediction(rec, emb)
         if decision == "review":
             self.store.enqueue_review(pid, ", ".join(reasons))
+        elif self.safe_mode and self._rng.random() < AUDIT_RATE:
+            # unbiased sample of confident answers, so retraining does not only
+            # see the posts the model found hard (selection bias)
+            self.store.enqueue_review(pid, "audit sample")
         log.info("prediction id=%s decision=%s prob=%.3f conf=%.2f unknown=%s model=%s",
                  pid, decision, prob, conf, unknown, self.version)
 
