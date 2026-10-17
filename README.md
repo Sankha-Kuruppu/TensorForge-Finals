@@ -83,7 +83,10 @@ python -m jobshield.train --version v1 --promote   # train, evaluate, register c
 uvicorn jobshield.api:app --port 8000              # API -> http://localhost:8000/docs
 streamlit run dashboard/app.py                     # dashboard -> http://localhost:8501
 python scripts/drift_demo.py                       # optional: full drift loop without the server
+python scripts/reset_demo.py                       # back to a clean demo state (stop the API first)
 ```
+
+A separate web UI can be built against the API. Every endpoint, input and display field is listed in [docs/UI_SPEC.md](docs/UI_SPEC.md).
 
 ### API
 
@@ -218,7 +221,9 @@ reports/                metrics and drift demo output
 
 ## AI tools used
 
-- **Claude Code** (AI coding assistant) for code scaffolding, debugging and drafting documentation. All team members reviewed the code and can explain it.
+- **Claude Code** (AI coding assistant) for code scaffolding, debugging and drafting documentation.
+- **ChatGPT** for an early model-training roadmap (saved as [`GPTrecomendation.txt`](GPTrecomendation.txt)) and for help with the exploration notebook in [`notebooks/`](notebooks/).
+- All team members reviewed the code and can explain it.
 - No LLM is used inside the product or for data generation.
 
 ## Templates reused
