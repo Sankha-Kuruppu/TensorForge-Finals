@@ -19,6 +19,8 @@ EMBED_MODEL_ID = "intfloat/multilingual-e5-small"
 # scripts/download_model.sh saves a local copy here (more reliable on slow networks)
 _LOCAL_EMBED = ARTIFACTS_DIR / "hf" / "multilingual-e5-small"
 EMBED_MODEL = str(_LOCAL_EMBED) if (_LOCAL_EMBED / "model.safetensors").exists() else EMBED_MODEL_ID
-EMBED_MAX_TOKENS = 256
+# 128 tokens covers a whole social-media post; long EMSCAD ads are truncated here
+# but TF-IDF still reads the full text. Keeps CPU inference fast.
+EMBED_MAX_TOKENS = 128
 
 SEED = 42
