@@ -51,6 +51,8 @@ SCAM = {
             "Hiring now for {dest} - male and female",
             "Free visa and air ticket to {dest}",
             "Last chance!! {dest} company direct recruitment",
+            "{agency} (SLBFE Licence No. {lic}) - urgent recruitment for {dest}",
+            "Vacancies in {dest} through {agency}",
         ],
         "job": [
             "Factory workers", "Housemaids", "Light vehicle drivers", "Hotel cleaners",
@@ -66,6 +68,7 @@ SCAM = {
             "No experience needed", "No interview", "No age limit",
             "No O/L or A/L required", "Visa guaranteed within 7 days", "No language test",
             "Without any qualifications", "Government approved agency",
+            "Online interview by video call", "Offer letter within 2 days",
         ],
         "fee": [
             "Pay Rs. {fee} registration fee to confirm your seat",
@@ -98,6 +101,7 @@ SCAM = {
             "{dest} සෘජු වීසා - ඒජන්තවරු නැහැ",
             "ඔබේ ජීවිතය වෙනස් කරගන්න! {dest} රැකියා දැන්ම",
             "{dest} සඳහා නොමිලේ වීසා සහ ගුවන් ටිකට්",
+            "{agency} (බලපත්‍ර අංක {lic}) - {dest} හදිසි බඳවා ගැනීම්",
         ],
         "job": [
             "කර්මාන්තශාලා සේවකයින්", "ගෘහ සේවිකාවන්", "රියදුරන්",
@@ -112,7 +116,7 @@ SCAM = {
         "perk": [
             "පළපුරුද්ද අවශ්‍ය නැත", "සම්මුඛ පරීක්ෂණයක් නැත", "වයස් සීමාවක් නැත",
             "සා/පෙළ උ/පෙළ අවශ්‍ය නැත", "දින 7කින් වීසා සහතිකයි", "භාෂා පරීක්ෂණයක් නැත",
-            "රජයේ අනුමැතිය ඇති ආයතනයක්",
+            "රජයේ අනුමැතිය ඇති ආයතනයක්", "වීඩියෝ ඇමතුමකින් ඔන්ලයින් සම්මුඛ පරීක්ෂණය",
         ],
         "fee": [
             "ඔබේ ස්ථානය තහවුරු කිරීමට රු. {fee} ලියාපදිංචි ගාස්තුවක් ගෙවන්න",
@@ -142,6 +146,7 @@ SCAM = {
             "{dest} direct visa, agent la naha",
             "Jeewithe wenas karaganna {dest} yanna",
             "{dest} free visa saha ticket",
+            "{agency} (SLBFE licence {lic}) {dest} urgent rassawal",
         ],
         "job": [
             "factory wada", "house maid wada", "driver wada",
@@ -156,7 +161,7 @@ SCAM = {
         "perk": [
             "experience oni naha", "interview naha", "wayasa simawak naha",
             "OL AL oni naha", "dawas 7n visa sure", "language test naha",
-            "government approved agency ekak",
+            "government approved agency ekak", "online interview video call eken",
         ],
         "fee": [
             "seat eka confirm karanna Rs. {fee} gewanna",
@@ -214,12 +219,16 @@ LEGIT = {
             "Do not pay money to individuals; all payments are made at our office with official receipts",
             "Fees are charged only as approved by SLBFE",
             "The employment contract will be explained and signed at SLBFE",
+            "Agency service fee as approved by SLBFE is payable only after the visa is issued, with an official receipt",
+            "Closing date: {day}",
+            "No experience needed for cleaner posts, training provided by employer",
         ],
         "contact": [
             "Apply by email to careers@{slug}.example",
             "Visit our office in {city} between 9 am and 4 pm",
             "For details call our office line 011-XXXXXXX",
             "Send your CV to hr@{slug}.example",
+            "WhatsApp our office on 07X-XXXXXXX to book an interview time",
         ],
     },
     "si": {
@@ -250,11 +259,14 @@ LEGIT = {
             "කිසිදු පුද්ගලයෙකුට මුදල් නොගෙවන්න; සියලු ගෙවීම් කාර්යාලයේදී නිල රිසිට්පත් සමඟ",
             "අයදුම් කිරීමට පෙර කාර්යාංශ වෙබ් අඩවියෙන් අපගේ බලපත්‍රය තහවුරු කරගන්න",
             "තෝරාගත් අයට ලිඛිතව දැනුම් දෙනු ලැබේ",
+            "කාර්යාංශය අනුමත සේවා ගාස්තුව වීසා ලැබුණු පසු පමණක්, නිල රිසිට්පතක් සමඟ ගෙවිය යුතුය",
+            "පිරිසිදු කිරීමේ තනතුරු සඳහා පළපුරුද්ද අවශ්‍ය නැත, පුහුණුව ලබා දේ",
         ],
         "contact": [
             "careers@{slug}.example වෙත අයදුම් කරන්න",
             "පෙ.ව. 9 සිට ප.ව. 4 දක්වා {city} කාර්යාලයට පැමිණෙන්න",
             "කාර්යාල දුරකථන 011-XXXXXXX",
+            "සම්මුඛ පරීක්ෂණ වේලාවක් සඳහා කාර්යාලයට WhatsApp කරන්න 07X-XXXXXXX",
         ],
     },
     "singlish": {
@@ -284,11 +296,14 @@ LEGIT = {
             "kisi kenekuta salli denna epa, gewim office eke receipt ekka witharai",
             "apply karanna kalin SLBFE site eken licence eka check karanna",
             "select une ayata liyumak ewanawa",
+            "SLBFE approved service fee eka visa awata passe witharai, official receipt ekak ekka",
+            "cleaner posts walata experience oni naha, training denawa",
         ],
         "contact": [
             "careers@{slug}.example ekata apply karanna",
             "9-4 athara {city} office ekata enna",
             "office number 011-XXXXXXX",
+            "interview time ekak ganna office ekata WhatsApp karanna 07X-XXXXXXX",
         ],
     },
 }
@@ -428,7 +443,20 @@ def _fill(rng, text, ctx):
     )
 
 
+def _impersonation_post(rng, lang):
+    """Shifted-era tactic: copy the wording of an official SLBFE programme notice,
+    then add a payment trick and an unofficial channel."""
+    official = LEGIT_SHIFT[lang]
+    neutral = [official[i] for i in (2, 4, 5) if i < len(official)]
+    lines = [official[0]] + rng.sample(neutral, rng.randint(1, len(neutral)))
+    lines += rng.sample(SCAM_SHIFT[lang]["fee"], 1)
+    lines += rng.sample(SCAM_SHIFT[lang]["contact"], 1)
+    return lines
+
+
 def _scam_post(rng, lang, era, part):
+    if era == "shifted" and rng.random() < 0.5:
+        return _impersonation_post(rng, lang)
     p = SCAM[lang]
     s = SCAM_SHIFT[lang] if era == "shifted" else None
     hook_pool = s["hook"] + p["hook"] if s else p["hook"]
