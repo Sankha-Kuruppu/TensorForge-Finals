@@ -54,6 +54,8 @@ flowchart LR
 
 **Requirements:** Python 3.12, about 2 GB of disk, CPU only. The first run downloads EMSCAD (50 MB) and `multilingual-e5-small` (470 MB).
 
+**The trained model is included.** `artifacts/models/v1.joblib` is the exact model behind the results below, so you can skip training and start serving straight away (`scripts\run.ps1 -SkipTrain` or `bash scripts/run.sh --skip-train`). Retraining from scratch takes about 20 minutes on a laptop CPU and reproduces it (fixed seeds).
+
 ### Windows (one command)
 
 ```powershell
