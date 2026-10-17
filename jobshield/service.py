@@ -32,7 +32,8 @@ REVIEW_BAND = 0.25          # confidence below this goes to human review
 SAFE_MODE_REVIEW_BAND = 0.5
 # too few labels teach the wrong lesson (tested: ~100 labels made the model distrust
 # genuine SLBFE-licensed Sinhala posts); ~200+ labels learn the new tactic safely
-MIN_REVIEWS_TO_RETRAIN = 200
+MIN_REVIEWS_TO_RETRAIN = 300
+RETRY_EXTRA_LABELS = 100    # after a rejected challenger, wait for this many new labels
 AUDIT_RATE = 0.3            # share of confident answers also reviewed during an alert
 MAX_TEST_F1_DROP = 0.02
 
@@ -70,6 +71,7 @@ class JobShield:
         self.last_level = "OK"
         self._lock = threading.Lock()
         self._rng = random.Random(0)
+        self.last_attempt_labels = 0
         self.load_champion()
 
     # -- model ------------------------------------------------------------
@@ -163,7 +165,8 @@ class JobShield:
     # -- retraining -------------------------------------------------------
     def maybe_retrain(self) -> bool:
         n = len(self.store.labelled_reviews())
-        if n >= MIN_REVIEWS_TO_RETRAIN and not self.retraining:
+        needed = max(MIN_REVIEWS_TO_RETRAIN, self.last_attempt_labels + RETRY_EXTRA_LABELS)
+        if n >= needed and not self.retraining:
             self.start_retrain(f"drift alert with {n} reviewed labels")
             return True
         return False
@@ -186,6 +189,7 @@ class JobShield:
             extra = pd.DataFrame({"text": [r["text_redacted"] for r in reviews],
                                   "text_norm": [r["text_redacted"] for r in reviews],
                                   "label": [r["label"] for r in reviews], "lang": [r["lang"] for r in reviews]})
+            self.last_attempt_labels = len(extra)
             path = ARTIFACTS_DIR / "reviewed_batch.csv"
             extra.to_csv(path, index=False)
             self.store.add_event("retrain_started", {"reason": reason, "reviewed": len(extra)})
@@ -199,6 +203,7 @@ class JobShield:
                 self.load_champion()
                 self.safe_mode = False
                 self.last_level = "OK"
+                self.last_attempt_labels = 0
                 log.info("promoted %s", challenger["version"])
             else:
                 log.warning("challenger rejected: %s", decision)

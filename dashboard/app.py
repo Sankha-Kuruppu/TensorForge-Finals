@@ -100,11 +100,11 @@ with tab_monitor:
                                               "offset": st.session_state.get("off_n", 0)})
         st.session_state["off_n"] = st.session_state.get("off_n", 0) + 60
         st.rerun()
-    if d2.button("⚡ Stream 100 shifted posts"):
+    if d2.button("⚡ Stream 200 shifted posts"):
         with st.spinner("streaming new scam tactics…"):
-            api("POST", "/demo/stream", json={"dataset": "shifted", "n": 100,
+            api("POST", "/demo/stream", json={"dataset": "shifted", "n": 200,
                                               "offset": st.session_state.get("off_s", 0)})
-        st.session_state["off_s"] = st.session_state.get("off_s", 0) + 100
+        st.session_state["off_s"] = st.session_state.get("off_s", 0) + 200
         st.rerun()
     if d3.button("👥 Simulate reviewers"):
         r = api("POST", "/demo/auto_review")

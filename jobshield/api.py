@@ -117,7 +117,7 @@ def demo_stream(body: StreamIn):
 
 
 @app.post("/demo/auto_review")
-def demo_auto_review(limit: int = 200):
+def demo_auto_review(limit: int = 2000):
     done = 0
     for item in svc().store.review_queue("pending", limit):
         label = state["demo_labels"].get(item["text_hash"])
@@ -133,4 +133,5 @@ def demo_reset():
     svc().store.reset()
     svc().safe_mode = False
     svc().last_level = "OK"
+    svc().last_attempt_labels = 0
     return {"ok": True}
