@@ -154,14 +154,14 @@ with tab_monitor:
         st.markdown("**Alerts**")
         if al.get("alerts"):
             st.dataframe(pd.DataFrame(al["alerts"])[["ts", "level", "message", "model_version"]],
-                         hide_index=True, use_container_width=True)
+                         hide_index=True, width="stretch")
         else:
             st.caption("No alerts yet")
     with c2:
         st.markdown("**Response events** (safe mode, retraining, promotion)")
         if al.get("events"):
             ev = pd.DataFrame(al["events"])
-            st.dataframe(ev[["ts", "kind", "detail"]], hide_index=True, use_container_width=True)
+            st.dataframe(ev[["ts", "kind", "detail"]], hide_index=True, width="stretch")
         else:
             st.caption("No events yet")
 
@@ -198,7 +198,7 @@ with tab_model:
                 for src, m in per_src.items():
                     rows.append({"split": split, "model": mname, "data": src,
                                  **{k: m.get(k) for k in ("n", "scams", "precision", "recall", "f1", "pr_auc")}})
-        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
     st.markdown("**Model registry**")
     if model.get("registry"):
-        st.dataframe(pd.DataFrame(model["registry"]["history"]), hide_index=True, use_container_width=True)
+        st.dataframe(pd.DataFrame(model["registry"]["history"]), hide_index=True, width="stretch")
