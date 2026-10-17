@@ -5,7 +5,12 @@ venv/
 .env
 *.db
 logs/
-artifacts/
+artifacts/*
+# ship only the served model (v1) and the registry; everything else is rebuilt by the pipeline
+!artifacts/models/
+artifacts/models/*
+!artifacts/models/v1.joblib
+!artifacts/models/registry.json
 data/raw/
 data/processed/
 .ipynb_checkpoints/

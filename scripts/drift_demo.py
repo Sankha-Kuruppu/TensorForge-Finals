@@ -9,11 +9,11 @@ import json
 import sys
 from pathlib import Path
 
-import pandas as pd
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# jobshield first: it loads torch before pandas (Windows DLL order, see jobshield/__init__.py)
 from jobshield.config import ARTIFACTS_DIR, PROCESSED_DIR, REPORTS_DIR  # noqa: E402
+import pandas as pd  # noqa: E402
 from jobshield.features import text_hash  # noqa: E402
 from jobshield.monitoring.store import Store  # noqa: E402
 from jobshield.service import REGISTRY, JobShield  # noqa: E402

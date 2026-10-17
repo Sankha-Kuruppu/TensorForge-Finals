@@ -6,8 +6,8 @@ Set-Location (Split-Path $PSScriptRoot -Parent)
 $env:PYTHONIOENCODING = "utf-8"
 
 python -m pip install -r requirements.txt
+python -m jobshield.data.prepare
 if (-not $SkipTrain) {
-    python -m jobshield.data.prepare
     python -m jobshield.train --version v1 --promote
 }
 Start-Process python -ArgumentList "-m", "uvicorn", "jobshield.api:app", "--port", "8000" -NoNewWindow
