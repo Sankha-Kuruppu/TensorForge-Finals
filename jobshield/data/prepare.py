@@ -37,12 +37,19 @@ def build() -> dict[str, pd.DataFrame]:
                                         random_state=SEED)
     sl_test = generate(400, "current", "test", scam_rate=0.45, seed=SEED + 1)
     shifted = generate(600, "shifted", "all", scam_rate=0.55, seed=SEED + 2)
+    # separate shifted posts, used only to evaluate a retrained challenger model
+    shifted_holdout = generate(300, "shifted", "all", scam_rate=0.55, seed=SEED + 4)
+    shifted_holdout = shifted_holdout[~shifted_holdout.text.isin(shifted.text)]
+    # normal live traffic for the demo (today's tactics, seen and unseen phrasing)
+    live_normal = generate(300, "current", "all", scam_rate=0.45, seed=SEED + 3)
 
     splits = {
         "train": pd.concat([em_train, sl_train]),
         "val": pd.concat([em_val, sl_val]),
         "test": pd.concat([em_test, sl_test]),
         "shifted": shifted,
+        "shifted_holdout": shifted_holdout,
+        "live_normal": live_normal,
     }
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     for name, df in splits.items():

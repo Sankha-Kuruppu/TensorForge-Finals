@@ -15,7 +15,7 @@ from sklearn.metrics import (average_precision_score, confusion_matrix, f1_score
                              precision_recall_curve, precision_score, recall_score, roc_auc_score)
 
 from jobshield.config import ARTIFACTS_DIR, MODELS_DIR, PROCESSED_DIR, REPORTS_DIR
-from jobshield.models import ReferenceProfile, build_embedding_clf, build_tfidf, embed
+from jobshield.models import ReferenceProfile, build_embedding_clf, build_tfidf, confidence, embed
 
 EMB_CACHE = ARTIFACTS_DIR / "embeddings"
 
@@ -70,9 +70,12 @@ def train(extra: str | None = None, version: str | None = None) -> dict:
     version = version or datetime.now(timezone.utc).strftime("v%Y%m%d-%H%M%S")
     train_df, val_df = load_split("train"), load_split("val")
     test_df, shifted_df = load_split("test"), load_split("shifted")
+    holdout_df = load_split("shifted_holdout")
     train_emb, val_emb = cached_embed("train", train_df), cached_embed("val", val_df)
     test_emb, shifted_emb = cached_embed("test", test_df), cached_embed("shifted", shifted_df)
+    holdout_emb = cached_embed("shifted_holdout", holdout_df)
 
+    extra_df, extra_emb = None, None
     if extra:
         # reviewed production inputs (labelled by human reviewers) become training data
         extra_df = pd.read_csv(extra)
@@ -94,22 +97,34 @@ def train(extra: str | None = None, version: str | None = None) -> dict:
 
     val_p = predict_all(val_df, val_emb)
     thrs = {m: best_threshold(val_df.label.values, p) for m, p in val_p.items()}
-    val_conf = np.abs(val_p["ensemble"] - 0.5) * 2
+    # monitoring reference = in-domain (Sri Lankan) validation traffic
+    sl_val = (val_df.source == "synthetic_sl_current").values
+    ref_emb = val_emb[sl_val]
+    ref_conf = confidence(val_p["ensemble"][sl_val], thrs["ensemble"])
+    if extra_df is not None:
+        # reviewed posts are the "new normal" the monitor should now expect
+        ref_emb = np.vstack([ref_emb, extra_emb])
+        ref_conf = np.concatenate([ref_conf, confidence(predict_all(extra_df, extra_emb)["ensemble"],
+                                                        thrs["ensemble"])])
+    reference = ReferenceProfile(train_emb, ref_emb, ref_conf)
 
     report = {
         "version": version,
         "trained_at": datetime.now(timezone.utc).isoformat(),
         "train_rows": len(train_df),
+        "reviewed_rows": int((train_df.source == "reviewed").sum()),
         "thresholds": {k: round(v, 4) for k, v in thrs.items()},
         "test": evaluate("test", test_df, predict_all(test_df, test_emb), thrs),
         "shifted": evaluate("shifted", shifted_df, predict_all(shifted_df, shifted_emb), thrs),
+        "shifted_holdout": evaluate("shifted_holdout", holdout_df,
+                                    predict_all(holdout_df, holdout_emb), thrs),
+        "drift_limits": reference.limits,
+        "drift_baseline": reference.baseline,
     }
 
     bundle = {
         "version": version, "tfidf": tfidf, "emb_clf": emb_clf,
-        "threshold": thrs["ensemble"],
-        "reference": ReferenceProfile(train_emb, val_emb, val_conf),
-        "report": report,
+        "threshold": thrs["ensemble"], "reference": reference, "report": report,
     }
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -120,6 +135,8 @@ def train(extra: str | None = None, version: str | None = None) -> dict:
                           for s, r in v.items()}
                       for m, v in report["test"].items()}, indent=1))
     print("shifted:", {m: v["all"]["f1"] for m, v in report["shifted"].items()})
+    print("shifted_holdout:", {m: v["all"]["f1"] for m, v in report["shifted_holdout"].items()})
+    print("drift limits:", reference.limits)
     return report
 
 
@@ -127,5 +144,10 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--extra", help="CSV of reviewed examples (text, text_norm, label)")
     ap.add_argument("--version")
+    ap.add_argument("--promote", action="store_true", help="make this model the serving champion")
     args = ap.parse_args()
-    train(args.extra, args.version)
+    rep = train(args.extra, args.version)
+    if args.promote:
+        from jobshield.service import promote
+        promote(rep["version"], "initial training")
+        print(f"promoted {rep['version']} to champion")

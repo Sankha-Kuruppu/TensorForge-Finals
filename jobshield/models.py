@@ -41,28 +41,51 @@ def build_embedding_clf() -> LogisticRegression:
     return LogisticRegression(C=2.0, class_weight="balanced", max_iter=3000, random_state=SEED)
 
 
-class ReferenceProfile:
-    """What 'normal' inputs look like at training time. Used by drift monitoring."""
+def confidence(prob: np.ndarray, threshold: float) -> np.ndarray:
+    """0 = sitting on the decision threshold, 1 = as far from it as possible."""
+    prob = np.asarray(prob)
+    return np.where(prob >= threshold, (prob - threshold) / (1 - threshold), (threshold - prob) / threshold)
 
-    def __init__(self, train_emb: np.ndarray, val_emb: np.ndarray, val_conf: np.ndarray,
-                 max_ref: int = 6000):
+
+class ReferenceProfile:
+    """What normal production traffic looks like. Used by drift monitoring.
+
+    bank_emb : training embeddings, used for the nearest-neighbour "unknown input" test
+    ref_emb  : in-domain (Sri Lankan) validation embeddings = expected production traffic
+    ref_conf : model confidence on those validation inputs
+    Window limits come from bootstrapping windows of normal traffic, so an alert
+    means "this window is less normal than 99.5% of normal windows".
+    """
+
+    def __init__(self, bank_emb, ref_emb, ref_conf, window: int = 50, max_bank: int = 8000):
         rng = np.random.default_rng(SEED)
-        idx = rng.choice(len(train_emb), size=min(max_ref, len(train_emb)), replace=False)
-        self.bank = train_emb[idx].astype(np.float32)
-        self.centroid = train_emb.mean(axis=0)
-        val_sim = self.nearest_sim(val_emb)
-        # an input is "unknown" if it is less similar to training data than 99% of val inputs
-        self.unknown_threshold = float(np.quantile(val_sim, 0.01))
-        self.val_unknown_rate = float((val_sim < self.unknown_threshold).mean())
-        self.val_conf_mean = float(val_conf.mean())
-        self.val_centroid_dist = float(1 - self._cos(val_emb.mean(axis=0), self.centroid))
+        idx = rng.choice(len(bank_emb), size=min(max_bank, len(bank_emb)), replace=False)
+        self.bank = bank_emb[idx].astype(np.float32)
+        self.window = window
+        self.centroid = ref_emb.mean(axis=0)
+        ref_sim = self.nearest_sim(ref_emb)
+        self.unknown_threshold = float(np.quantile(ref_sim, 0.02))
+        unknown = ref_sim < self.unknown_threshold
+
+        stats = {"centroid_dist": [], "confidence_mean": [], "unknown_rate": []}
+        for _ in range(1000):
+            w = rng.choice(len(ref_emb), size=window, replace=True)
+            stats["centroid_dist"].append(self.centroid_dist(ref_emb[w]))
+            stats["confidence_mean"].append(float(ref_conf[w].mean()))
+            stats["unknown_rate"].append(float(unknown[w].mean()))
+        self.baseline = {k: float(np.mean(v)) for k, v in stats.items()}
+        self.limits = {
+            "centroid_dist": float(np.quantile(stats["centroid_dist"], 0.995)) * 1.25,
+            "confidence_mean": float(np.quantile(stats["confidence_mean"], 0.005)) * 0.9,
+            "unknown_rate": max(float(np.quantile(stats["unknown_rate"], 0.995)), 0.10),
+        }
 
     @staticmethod
     def _cos(a, b):
         return float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-9))
 
     def nearest_sim(self, emb: np.ndarray) -> np.ndarray:
-        return (emb.astype(np.float32) @ self.bank.T).max(axis=1)
+        return (np.atleast_2d(emb).astype(np.float32) @ self.bank.T).max(axis=1)
 
     def centroid_dist(self, emb: np.ndarray) -> float:
-        return float(1 - self._cos(emb.mean(axis=0), self.centroid))
+        return float(1 - self._cos(np.atleast_2d(emb).mean(axis=0), self.centroid))
