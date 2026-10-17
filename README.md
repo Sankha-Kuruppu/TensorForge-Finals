@@ -2,7 +2,25 @@
 
 > Catches fake overseas-job offers today, and notices when recruitment scammers change tactics tomorrow.
 
-**TensorForge 2.0 Final-Forge** · Theme: _Scam-Proof by Design_ · Licence: MIT
+**TensorForge 2.0 Final-Forge** · Theme: _Scam-Proof by Design_ · Licence: [MIT](LICENSE)
+
+## For judges: where to find each requirement
+
+| Requirement (Rules 2 and 4) | Where |
+|---|---|
+| Problem and users | [Problem statement](#problem-statement), [Who we protect](#who-we-protect) |
+| Running service, started from documented commands | [Quick start](#quick-start) (run script, Docker, or two commands) |
+| Reproducible pipeline, pinned dependencies | [Step by step](#step-by-step), [`requirements.txt`](requirements.txt) |
+| Data sources and licences | [Data](#data), [Third-party software](#third-party-software-and-licences) |
+| Held-out test set and shifted set, described | [Splits](#splits), [The shifted set](#the-shifted-set-how-scammers-change-tactics) |
+| Evaluation results on the held-out test set | [Evaluation results](#evaluation-results) |
+| Monitoring: prediction logging + drift signals on the shifted set | [Monitoring and drift response](#monitoring-and-drift-response), [drift demo](#end-to-end-drift-demo-python-scriptsdrift_demopy--reportsdrift_demojson) |
+| Drift response (alert, fallback, human review, retraining) | [Drift response](#drift-response) |
+| Architecture diagram | [Architecture](#architecture) |
+| Impact statement | [Impact](#impact) and [IMPACT.md](IMPACT.md) |
+| AI tools used, templates reused | [AI tools used](#ai-tools-used), [Templates reused](#templates-reused) |
+| No real personal data, no secrets in the repo | [Data](#data), [Privacy and security](#privacy-and-security) |
+| Open licence | [LICENSE](LICENSE) (MIT) |
 
 ## Problem statement
 
@@ -23,6 +41,38 @@ See the full one-page impact brief in [IMPACT.md](IMPACT.md).
 2. **Logs** every prediction with privacy-safe redaction.
 3. **Notices drift** with three signals over a sliding window: input distribution shift, falling confidence and a rising share of unknown inputs.
 4. **Responds:** a safe fallback warning, a human-review queue, safe mode on alert, and a retraining trigger with a champion/challenger gate.
+
+## Quick start
+
+**Requirements:** Python 3.12, about 2 GB of disk, CPU only (no GPU, no API keys). The trained model is included, so no training is needed to run the service.
+
+```powershell
+git clone https://github.com/Sankha-Kuruppu/TensorForge-Finals.git
+cd TensorForge-Finals
+pip install -r requirements.txt
+python -m jobshield.data.prepare          # downloads EMSCAD, builds the data splits (~1 min)
+```
+
+Then start the service in **two terminals**:
+
+```powershell
+# Terminal 1: API  -> http://localhost:8000  (interactive docs: http://localhost:8000/docs)
+python -m uvicorn jobshield.api:app --port 8000
+
+# Terminal 2: dashboard -> http://localhost:8501
+python -m streamlit run dashboard/app.py
+```
+
+The first start downloads the `multilingual-e5-small` encoder (470 MB) and takes about 20 seconds to load it. Check that it's up: open http://localhost:8000/docs and try `POST /predict`, or from a shell (on Windows PowerShell type `curl.exe` instead of `curl`):
+
+```bash
+curl http://localhost:8000/health
+curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d "{\"text\": \"URGENT jobs in Dubai! Pay Rs. 150,000 registration fee. WhatsApp only 07X-XXXXXXX\"}"
+```
+
+**Or with one command:** `powershell -ExecutionPolicy Bypass -File scripts\run.ps1 -SkipTrain` (Windows), `bash scripts/run.sh --skip-train` (Linux/macOS), or Docker (below). Drop the skip flag to retrain from scratch.
+
+**Reset to a clean demo state** (stop the API first): `python scripts/reset_demo.py`
 
 ## Architecture
 
@@ -51,9 +101,7 @@ flowchart LR
     REG --> A
 ```
 
-## How to run
-
-**Requirements:** Python 3.12, about 2 GB of disk, CPU only. The first run downloads EMSCAD (50 MB) and `multilingual-e5-small` (470 MB).
+## How to run (all options)
 
 **The trained model is included.** `artifacts/models/v1.joblib` is the exact model behind the results below, so you can skip training and start serving straight away (`scripts\run.ps1 -SkipTrain` or `bash scripts/run.sh --skip-train`). Retraining from scratch takes about 20 minutes on a laptop CPU and reproduces it (fixed seeds).
 
@@ -87,6 +135,7 @@ uvicorn jobshield.api:app --port 8000              # API -> http://localhost:800
 streamlit run dashboard/app.py                     # dashboard -> http://localhost:8501
 python scripts/drift_demo.py                       # optional: full drift loop without the server
 python scripts/reset_demo.py                       # back to a clean demo state (stop the API first)
+python -m pytest tests                             # unit tests (redaction, warning signs, splits)
 ```
 
 A separate web UI can be built against the API. Every endpoint, input and display field is listed in [docs/UI_SPEC.md](docs/UI_SPEC.md).
@@ -112,23 +161,26 @@ A separate web UI can be built against the API. Every endpoint, input and displa
 | Source                                                                                                                                                                                                                                                  | Licence / method                                                                                                                                       | Rows                                 |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
 | **EMSCAD** (Employment Scam Aegean Dataset, University of the Aegean): real job ads with fraud labels. Hugging Face mirror [`victor/real-or-fake-fake-jobposting-prediction`](https://huggingface.co/datasets/victor/real-or-fake-fake-jobposting-prediction) | CC0-1.0                                                                                                                                                | 17,880 (866 fraudulent)              |
-| **Sri Lankan overseas-job posts** in English, Sinhala and Singlish                                                                                                                                                                                      | Written by the team as component templates in [`jobshield/data/sl_generator.py`](jobshield/data/sl_generator.py), assembled with a fixed seed           | 2,000 current-era + 900 shifted-era  |
-| **multilingual-e5-small** (pretrained encoder, not data)                                                                                                                                                                                                | MIT                                                                                                                                                    | –                                    |
+| **Sri Lankan overseas-job posts** in English, Sinhala and Singlish                                                                                                                                                                                      | Written by the team as component templates in [`jobshield/data/sl_generator.py`](jobshield/data/sl_generator.py), assembled with a fixed seed (no LLM)  | 2,800 current-era + 900 shifted-era  |
+| **multilingual-e5-small** (`intfloat/multilingual-e5-small`, pretrained encoder, not data)                                                                                                                                                              | MIT                                                                                                                                                    | –                                    |
+
+All data is downloaded or generated by `python -m jobshield.data.prepare` (fixed seed 42), so every split below can be rebuilt exactly.
 
 ### Splits
 
-| Split                 | Contents                                                                                       | Purpose                                                 |
-| --------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `train`               | EMSCAD 70% (stratified) + Sri Lankan current-era posts                                         | Model fitting                                           |
-| `val`                 | EMSCAD 15% + Sri Lankan current-era posts                                                      | Threshold tuning, monitoring reference                  |
-| **`test` (held-out)** | EMSCAD 15% + Sri Lankan posts built **only from sentences never seen in training**             | Reported results                                        |
-| **`shifted`**         | 600 shifted-era Sri Lankan posts                                                               | Drift demo stream; reviewed labels feed retraining      |
-| `shifted_holdout`     | ~300 other shifted-era posts                                                                   | Judging the retrained challenger (never trained on)     |
-| `live_normal`         | 300 current-era posts                                                                          | Demo "normal traffic"                                   |
+| Split | Rows | Scams | Contents | Purpose |
+|---|---|---|---|---|
+| `train` | 13,633 | 1,234 | EMSCAD 70% (stratified, 12,273) + Sri Lankan current-era posts (1,360) | Model fitting |
+| `val` | 2,870 | 240 | EMSCAD 15% (2,630) + Sri Lankan current-era posts (240) | Decision threshold tuning |
+| **`test` (held-out)** | **3,030** | **325** | EMSCAD 15% (2,630 ads, 128 scams) + Sri Lankan posts (400, 197 scams) built **only from sentences never seen in training** | **Reported results** (never used for training or tuning) |
+| **`shifted`** | **600** | **354** | Shifted-era Sri Lankan posts (tomorrow's tactics) | **Drift demo stream**; its reviewed labels feed retraining |
+| `shifted_holdout` | 300 | 200 | Shifted-era posts built from shifted sentences **not used in `shifted`** | Judging a retrained challenger (never trained on) |
+| `live_normal` | 300 | 131 | Current-era posts | Demo "normal traffic" |
+| `monitor_ref` | 500 | 236 | Current-era posts, separate sample | Calibrating the drift limits only |
 
-**Phrasing-disjoint test set:** every template pool is split so every fourth sentence is reserved for the test set. This stops the model from scoring well by memorising templates.
+**Phrasing-disjoint held-out sets:** every template pool is split so every fourth sentence (for shifted pools, the last quarter) is reserved for the held-out set. This stops the model from scoring well by memorising templates.
 
-**The shifted set, or how scammers change tactics:**
+### The shifted set: how scammers change tactics
 
 1. New destinations: Israel, Japan, South Korea, Romania, Poland, Canada
 2. New payment tricks: QR codes, USDT crypto, mobile wallets, "top up to activate your job account"
@@ -208,7 +260,7 @@ Every prediction is written to SQLite (`artifacts/predictions.db`): time, hash, 
 | Mean confidence          | falling confidence | Average distance of scores from the decision threshold                                  |
 | Unknown-input share      | unknown inputs     | Share of posts whose nearest training neighbour is less similar than 98% of normal posts |
 
-**Limits are learnt, not guessed:** 1,000 bootstrapped windows of normal Sri Lankan validation traffic set each limit at the 99.5th percentile, plus a margin. One signal firing gives **WARN**; two or more give **ALERT**.
+**Limits are learnt, not guessed:** 1,000 bootstrapped windows drawn from a separate sample of normal Sri Lankan traffic (`monitor_ref`, never used for training or testing) set each limit at the 99.5th percentile, plus a margin. One signal firing gives **WARN**; two or more give **ALERT**.
 
 ### Drift response
 
@@ -217,6 +269,38 @@ Every prediction is written to SQLite (`artifacts/predictions.db`): time, hash, 
 3. **Safe mode on ALERT:** a wider review band, and any post that asks for payment is reviewed even if the model thinks it's fine.
 4. **Retraining trigger:** during an alert, once 250 reviewed labels exist, a challenger is trained on the original data plus the reviewed posts. A random 30% audit sample of confident answers is also reviewed during alerts, to avoid only learning from hard cases. If a challenger is rejected, the next attempt waits for 100 more labels.
 5. **Champion/challenger gate:** the challenger is promoted only if F1 on the shifted holdout improves **and** F1 on the original test set drops by no more than 0.02. Otherwise the champion keeps serving and the rejection is logged.
+
+## Impact
+
+**Who:** Sri Lankans seeking work abroad (a record ~313,000 left in 2024) and the families who pay upfront "fees", often first-time, rural or domestic workers reached through Facebook, TikTok and WhatsApp in Sinhala, English and Singlish.
+
+**Harm:** single schemes have taken Rs. 14.9M from 10 victims and about Rs. 200M with fake European jobs; SLBFE recovered Rs. 194.5M for victims in five months, only for reported cases.
+
+**What we prevent:** in our drift demo the model alone would have called 39% of new-tactic scams safe; JobShield called none safe. **Pilot measures:** posts flagged before payment, rupees at risk avoided, scams slipping through during drift, time to adapt, and reports forwarded to SLBFE.
+
+**Path to adoption:** free public checker (month 0–1), then an SLBFE Special Investigation Unit pilot using our review queue (month 1–3), then SLBFE district officers for rural reach (month 3–6), alongside CBSL's "Be Scam Proof" campaign. Runs on one CPU server with no paid API.
+
+The full one-page statement, with sources, is in [IMPACT.md](IMPACT.md).
+
+## Privacy and security
+
+- **No real personal data:** no real phone numbers, NIC numbers, bank details or real people's messages (PDPA No. 9 of 2022). Synthetic posts use `07X-XXXXXXX`, `.example` links and invented agency names.
+- **Logs are redacted:** phone numbers, emails, links and NIC numbers are replaced with tokens before anything is stored; raw text is never logged (`jobshield/features.py`, tested in `tests/`).
+- **Synthetic scam text** is used only for training and testing. It is never sent to real phone numbers, emails or accounts, and the product has no sending feature.
+- **No secrets in the repository:** the project uses no API keys or passwords.
+
+## Third-party software and licences
+
+| Software | Licence | Used for |
+|---|---|---|
+| scikit-learn | BSD-3-Clause | TF-IDF, logistic regression, metrics |
+| PyTorch | BSD-3-Clause | Running the encoder (CPU) |
+| sentence-transformers, transformers | Apache-2.0 | Loading `multilingual-e5-small` |
+| FastAPI, Pydantic, Uvicorn | MIT / MIT / BSD-3-Clause | API service |
+| Streamlit | Apache-2.0 | Dashboard |
+| pandas, NumPy, joblib, PyArrow, requests | BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / Apache-2.0 / Apache-2.0 | Data handling, model storage, downloads |
+
+Exact versions are pinned in [`requirements.txt`](requirements.txt).
 
 ## Repository layout
 
@@ -233,8 +317,14 @@ jobshield/
   monitoring/drift.py   drift signals
   api.py                FastAPI app
 dashboard/app.py        Streamlit dashboard
-scripts/                run scripts, model download, drift demo
-reports/                metrics and drift demo output
+scripts/                run scripts, model download, drift demo, demo reset
+artifacts/models/       served model v1 + model registry
+reports/                held-out metrics, drift demo output, experiments
+tests/                  unit tests
+docs/UI_SPEC.md         API contract for a separate web UI
+notebooks/              data exploration notebooks
+IMPACT.md               one-page impact statement
+LICENSE                 MIT
 ```
 
 ## AI tools used
@@ -250,4 +340,4 @@ None. Everything was written during the build window.
 
 ## Licence
 
-MIT
+[MIT](LICENSE). Data and model licences are listed under [Data](#data) and [Third-party software](#third-party-software-and-licences).
