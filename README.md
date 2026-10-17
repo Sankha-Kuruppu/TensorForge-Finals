@@ -171,7 +171,7 @@ Without monitoring, v1 would silently miss **29% of new-tactic scams**. The retr
 | Phase | Drift status | Scams in phase | Model alone would call safe | Called safe by JobShield |
 |---|---|---|---|---|
 | 100 normal posts | 🟢 OK (8% sent to review) | 45 | 0 | 0 |
-| 400 shifted posts | 🔴 ALERT (all 3 signals) | 241 | **95 (39%)** | **0** (routed to review) |
+| 400 shifted posts | 🔴 ALERT (input shift 0.013 vs limit 0.004; unknown share 50% vs limit 10%; confidence fell 0.80 → 0.71 but stayed above its 0.69 limit) | 241 | **95 (39%)** | **0** (routed to review) |
 | 282 reviewed labels → retrain → challenger **promoted** (test F1 0.922 → 0.929, shifted holdout F1 0.834 → 0.993) | | | | |
 | 200 new shifted posts | 🟠 WARN (unknown share 50% → 0%) | 113 | **0** | **0** (review rate 5.5%) |
 
