@@ -20,7 +20,7 @@ from jobshield.service import JobShield  # noqa: E402
 
 
 def stream(svc, df, labels, tag):
-    caught = missed = 0
+    caught = missed = model_alone_missed = 0
     decisions = {}
     for text, label in zip(df.text, df.label):
         labels[text_hash(text)] = int(label)
@@ -32,9 +32,13 @@ def stream(svc, df, labels, tag):
                 missed += 1
             else:
                 caught += 1
+            # what a plain classifier with no monitoring or review would have said
+            if r["prob"] < r["threshold"]:
+                model_alone_missed += 1
     status = svc.drift_status()
     phase = {"phase": tag, "posts": len(df), "decisions": decisions,
-             "scams_missed_silently": missed, "scams_flagged_or_reviewed": caught,
+             "scams": int(df.label.sum()), "scams_missed_silently": missed,
+             "scams_flagged_or_reviewed": caught, "scams_missed_by_model_alone": model_alone_missed,
              "drift_level": status["level"], "safe_mode": svc.safe_mode, "model": svc.version,
              "signals": {k: v["value"] for k, v in status.get("signals", {}).items()}}
     print(json.dumps(phase))

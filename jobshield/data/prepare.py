@@ -42,6 +42,9 @@ def build() -> dict[str, pd.DataFrame]:
     shifted_holdout = shifted_holdout[~shifted_holdout.text.isin(shifted.text)]
     # normal live traffic for the demo (today's tactics, seen and unseen phrasing)
     live_normal = generate(300, "current", "all", scam_rate=0.45, seed=SEED + 3)
+    # normal traffic used only to calibrate drift limits (never trained or tested on)
+    monitor_ref = generate(500, "current", "all", scam_rate=0.45, seed=SEED + 5)
+    monitor_ref = monitor_ref[~monitor_ref.text.isin(live_normal.text)]
 
     splits = {
         "train": pd.concat([em_train, sl_train]),
@@ -50,6 +53,7 @@ def build() -> dict[str, pd.DataFrame]:
         "shifted": shifted,
         "shifted_holdout": shifted_holdout,
         "live_normal": live_normal,
+        "monitor_ref": monitor_ref,
     }
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     for name, df in splits.items():
