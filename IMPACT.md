@@ -1,61 +1,56 @@
 # Impact Statement: JobShield LK
 
-> **Protecting Sri Lankan migrant workers and their families from predatory foreign-employment recruitment fraud through real-time, drift-aware scam intelligence.**
+> **Protecting Sri Lankan migrant workers and their families from foreign-employment recruitment fraud, with scam detection that notices when tactics change.**
 
 ---
 
-## 1. Who is Protected
+## 1. Who is protected
 
-JobShield LK safeguards vulnerable, aspirational Sri Lankan migrant job seekers and the extended families whose livelihoods depend on them:
+JobShield LK protects Sri Lankans looking for work abroad, and the families who pay for it:
 
-- **Rural and First-Time Job Seekers:** Over 70% of outbound migrant workers come from rural and semi-urban communities (e.g., Kurunegala, Kandy, Galle, Batticaloa, Anuradhapura). Navigating recruitment primarily via unmonitored channels—Facebook public groups, TikTok recruitment influencers, and viral WhatsApp forwards—they lack ready access or digital fluency to cross-reference SLBFE licensing registries.
-- **Youth & Skilled/Semi-Skilled Applicants:** Young workers pursuing newly opened, high-wage corridors (South Korea, Japan, Israel, Romania, Poland, Canada) who are aggressively targeted with fraudulent work-visa offers demanding large upfront "agency deposits".
-- **Female Domestic Workers:** Women heading to the Middle East who frequently face predatory intermediaries charging illegal processing fees despite statutory employer-paid migration mandates.
-- **Interdependent Extended Families:** Spouses, aging parents, and children who finance departure fees by liquidating family land, pawning gold jewellery, or taking high-interest loans from informal money lenders (10–25% monthly interest).
+- **Rural and first-time job seekers** who find jobs through Facebook groups, TikTok and WhatsApp forwards, channels where nobody checks whether an "agency" is licensed, and who have no easy way to check the SLBFE licence register themselves.
+- **Young workers chasing new destinations** (South Korea, Japan, Israel, Europe, Canada) who are targeted with fake work-visa offers that demand large upfront "deposits".
+- **Women going into domestic work** abroad, approached by intermediaries charging "processing fees".
+- **Their families**, who often borrow money or pawn jewellery to pay these fees.
 
----
-
-## 2. How Many People Could Be Reached
-
-- **Addressable Population:** In 2024, a record **~313,000 Sri Lankans officially departed for foreign employment** (SLBFE). Because multiple job seekers apply for every published opening, the active pool exposed to overseas job postings is estimated at **1.2 to 1.5 million people annually**.
-- **Digital Penetration:** Over 75% of prospective migrant workers regularly access Meta platforms (WhatsApp, Facebook) and TikTok via mobile devices.
-- **Target Adoption Funnel:**
-  - **Year 1 Target (Pilot):** **100,000+ citizens reached**, with **50,000+ job advertisements audited** via the self-service web checker, WhatsApp message-forwarding verification, and assisted screening across 25 SLBFE District Extension Offices.
-  - **Year 2 Scale:** **400,000+ checks annually**, embedding verification into mandatory pre-departure orientation, district Divisional Secretariats, and migrant trade union networks.
+Posts reach them in Sinhala, English or Singlish. Most scam filters only read English.
 
 ---
 
-## 3. Measurable Harm Prevented
+## 2. How many people could be reached
 
-Recruitment fraud causes immediate financial insolvency, debt bondage, and human trafficking. JobShield LK interrupts this pipeline before money changes hands:
-
-- **Direct Financial Loss Interception:**
-  - Individual victims are extorted for **LKR 150,000 to LKR 1,500,000** ($500–$5,000 USD) in fake "registration", "visa processing", and "guaranteed placement" fees.
-  - Documented benchmarks: In early 2025, 10 victims lost **LKR 14.9 million** to a single fake Canada scheme; an unlicensed syndicate defrauded **LKR 200 million** for bogus European hospitality jobs. Between Oct 2025 and Feb 2026, the SLBFE recovered and refunded **LKR 194.5 million**—a small fraction of total illicit extraction.
-  - **Projected Financial Savings:** Intercepting 1,500 fraudulent transactions in Year 1 preserves **over LKR 500 Million (~$1.7M USD)** directly for working-class families.
-- **Systemic & Human Harms Mitigated:**
-  - **Debt Bondage & Asset Stripping:** Prevents distress asset liquidations (pawned gold, mortgaged ancestral land) and predatory microfinance debt cycles when promised jobs fail to materialize.
-  - **Human Trafficking & Cyber Slavery:** Prevents victims from traveling on tourist/visit visas into unregulated foreign jurisdictions or forced-labor cyber-scam sweatshops (e.g., Southeast Asian cyber-trafficking corridors).
-- **Core Pilot Metrics:**
-  1. *Direct Capital Saved:* $\sum (\text{Confirmed High-Risk Scams} \times \text{Quoted Advance Fee})$.
-  2. *Interception Rate:* Ratio of verified fake ads flagged before payment deadlines.
-  3. *Triage Acceleration:* Reduction in SLBFE Special Investigation Unit (SIU) case intake and verification time from days to seconds.
-  4. *Tactic Adaptation Latency:* Time (hours) between scam tactic drift detection and retrained model deployment.
+- **~313,000 Sri Lankans left for foreign employment in 2024**, a record (SLBFE figures). The number who see and answer overseas job posts is a multiple of that.
+- Each departing worker typically supports a household, so hundreds of thousands of families are exposed every year.
+- **Year-one target:** **50,000 job posts checked** through a free web checker and SLBFE district offices.
 
 ---
 
-## 4. Realistic Path to Adoption
+## 3. Measurable harm prevented
 
-JobShield LK is engineered for zero-friction, zero-marginal-cost public sector adoption:
+JobShield works **before money changes hands**: it flags the post when the job seeker first sees it.
 
-| Horizon | Milestone & Execution Channels |
+- **The losses are large:** in one 2025 case, 10 victims lost **LKR 14.9 million** (about LKR 1.5 million each) to a fake Canada-jobs scheme. Another scheme, run through a Negombo agency that held a valid SLBFE licence, took about **LKR 200 million** for fake European hospitality jobs (arrests in October 2025). Between October 2025 and February 2026, SLBFE recovered and refunded **LKR 194.5 million**, and only for reported cases.
+- **Complaints are rising:** SLBFE says complaints about job fraud promoted on social media are rising daily, and most ads it investigated were fake.
+- **Evidence from our build:** when we simulated scammers changing tactics, the model alone would have called **39%** of the new scams safe; JobShield called **none** safe, because it noticed the change and sent them to human review. After reviewing and retraining, the new model catches them itself (F1 0.83 → 0.99).
+
+**What a pilot measures:**
+1. **Money at risk avoided:** confirmed scam posts × the fee each post demanded.
+2. **Interception rate:** share of confirmed fake ads flagged before anyone paid.
+3. **Triage time:** time SLBFE investigators spend per reported ad, with and without pre-computed risk scores.
+4. **Time to adapt:** hours from a drift alert to a retrained, promoted model.
+
+---
+
+## 4. Realistic path to adoption
+
+| Horizon | Milestone |
 | :--- | :--- |
-| **Month 0–1:**<br>*(Public Web Checker)* | Deploy the free web checker in Sinhala, Tamil, and English. Every scan output delivers transparent warning flags and direct one-click verification against the official SLBFE licensed agency register (`slbfe.lk`) and the **1989** National Migrant Hotline. |
-| **Month 2–3:**<br>*(SLBFE SIU Pilot)* | Integrate the review queue into the SLBFE Special Investigation Unit (SIU) dashboard. Officers triage citizen reports with pre-computed risk scores, transforming daily investigative verdicts into active retraining data. |
-| **Month 4–6:**<br>*(Grassroots & WhatsApp)* | Launch a lightweight WhatsApp verification bot for one-touch message forwarding. Equip SLBFE Development Officers across 25 District Offices to audit flyers during pre-departure registration. |
-| **Month 7–12:**<br>*(Ecosystem Partnerships)* | Partner with the Central Bank of Sri Lanka (CBSL) "Be Scam Proof" campaign and Sri Lanka CERT\|CC. Share aggregated scam patterns and suspicious bank/wallet accounts with the Police Cyber Crimes Division and social media platforms for proactive takedowns. |
+| **Month 0–1:** public web checker | Free checker in Sinhala and English. Every warning points the user to the SLBFE licence check and the **1989** SLBFE hotline. |
+| **Month 1–3:** SLBFE Special Investigation Unit pilot | Investigators triage reported ads in our review queue; their verdicts become retraining data. Add a lookup against the SLBFE licensed-agency register. |
+| **Month 3–6:** grassroots reach | SLBFE Development Officers in district offices use the checker during pre-departure registration. Add a WhatsApp forwarding bot and Tamil support. |
+| **Ongoing:** partnerships | CBSL's "Be Scam Proof" campaign for awareness; Sri Lanka CERT\|CC for sharing new tactics; reports to social media platforms for takedowns. |
 
-**Operational Sustainability:** The entire inference and drift-monitoring pipeline runs on a single low-spec CPU instance (< $15/month), ensuring long-term institutional viability for government and non-profit operators without recurring proprietary LLM API costs.
+**Sustainability:** the whole detection and drift-monitoring pipeline runs on a single CPU server, with no GPU and no paid LLM API, so it is cheap for a government or non-profit to run long term.
 
 ---
-*Data Sources: SLBFE Annual Statistical Reports (2023–2024); Ada Derana & Daily Morning RTI disclosures; Daily FT, "SLBFE busts major foreign job scandals"; Central Bank of Sri Lanka Economic Reports; SLBFE Special Investigation Unit enforcement briefings (2025–2026).*
+*Sources: SLBFE departure figures via Ada Derana ("Over 300,000 Sri Lankans left for foreign employment in 2024") and The Daily Morning (RTI data); Daily FT, "SLBFE busts major foreign job scandals"; Ada Derana, "Two arrested for defrauding Rs. 200 million by promising employment in Europe" (Oct 2025); Ada Derana, "Over Rs. 194.5 million recovered and refunded to foreign employment scam victims: SLBFE" (Mar 2026); Hiru News on rising social-media job-fraud complaints. Model results: this repository's README and `reports/`.*
