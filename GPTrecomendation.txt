@@ -1,0 +1,814 @@
+# JobShield LK — Model Training Roadmap 🚀
+
+### Detect overseas recruitment scams in Sri Lanka and identify when scam tactics change
+
+Your selected problem is a good fit for the TensorForge 2.0 competition. I recommend building JobShield LK as a **multilingual text-classification system with a lightweight baseline, a stronger semantic model, and a separate drift-monitoring component**.
+
+Since your competition has a six-hour build window, we should prioritize a working, evaluated model and a convincing drift demonstration over training a large model from scratch.
+
+I'll guide you step by step, including dataset selection, preprocessing, training, evaluation, model saving, and integrating the model into your FastAPI application.
+
+---
+
+# 1. First, choose the right ML approach
+
+Your proposed architecture mentions two models:
+
+1. TF-IDF baseline.
+2. `intfloat/multilingual-e5-small` sentence embeddings.
+
+I recommend keeping both as candidate approaches, but **train the TF-IDF baseline first and use it as your fallback**.
+
+Here is the proposed architecture:
+
+![Image](https://images.openai.com/static-rsc-4/0uk9ZC-wfzcC5Z4IU86X9HRRY5tYc5EKtxpS8IItTNqfqqLEkx4yQMFWmsGnnqMOIrp-BbPpB5UQrwzAkylwCIaUeiONRn2xj6EZLXeq5FbjYps1OJ8Ki0iYjzE66WSQth27Ka-TX6WrflXW4PT_--f5NThtdztBOCMBuR-13S7a1AjTLOrM6KCH4eACq7qF?purpose=fullsize)
+
+![Image](https://images.openai.com/static-rsc-4/GsBo3CZNOUDtSDtD8RlJJejBzVRpTsVNKPa9EM2srRg6qYc1X7RZ8hsUWGNFKhxirsN5o6_qHo6bsrH3zjWIiI1F0qwBKnfmdpaDnsZBYVEb5FNPKrYLyVOITdfezN0XYoMMnCdRzJJS5TBrUZuLV_pE_m0Uu1Kd1Jgh__s3qZhnwOFGaDjS2faNovpJtgLw?purpose=fullsize)
+
+![Image](https://images.openai.com/static-rsc-4/FGLxloWUiIrYIBdeYJfErH3_rtw1k8grqJ8aMQowJzcTnx76M3dCYQ1L1FTttJQl2xDGar7aoY37Zx6HxsSyVM6jXtXw7ma-oYFdXgOHuC1sGxKoOZvn3ijbl8QUpIvZDRy6k68jq5Nxc_X9ZeB8GwZU1PymrjfGOIX9tGCpmxMVpM8434tAYHD7gsbC4axm?purpose=fullsize)
+
+![Image](https://images.openai.com/static-rsc-4/N5WpxEANYAYtqyEUplC5kBPHwhDK8qkzkZbAFb15p8lTduXLPJT9eMqzajtyhzKl9o1x3j72zK4zVEY3znDHMWbQggdh4txVXtFyk-4PVDXYvnTAYdFVx7KwcFLUF_241zesHtHJc6d85jGTN-5a4v8-a4ka-kbSwB0wyJEc0iHI3UNGY7kFTV9CebyM54q1?purpose=fullsize)
+
+![Image](https://images.openai.com/static-rsc-4/-wfrfZ5xtBnGO0Pz-UbSCx7p8yVBsEWWGizM_XBcngwfG832_fMICwqjIh1RYLhO5e00mypgivPDpMadqi7sXkAFTJ5fOaD3fxpORR3cYw9OA8yGkqz0yhsPh-gOz5N1_N4BMhQcB6smrwJawSSGfwW-m9MJkALneHUrPqL5Pj4Cy_rPfjZskVUDksxqAGsU?purpose=fullsize)
+
+![Image](https://images.openai.com/static-rsc-4/RbUkJ9PP2oMC5IgjrTWop0DTeD1XiMJtxG_QFkNqRR4sdoJkVam-Idm9XE5FXFg9ZsPunifH5dIQx-Bc77hAEP1Q2tAv6-UYP4ttYzzgZ3c67cbppesmQmbZqNzZHE1CLcEe9G69GFL8BN1BzPzBrydDCtlHGp-GC-VqVDac4uc4_h8UfsMX6aePcRi6_Bli?purpose=fullsize)
+
+![Image](https://images.openai.com/static-rsc-4/smmk-U5ULsGxCnfT52aJ9DZwTwrhVTnEx8mTGLBk3Vuhfsxl9TSlAYBhfv69VuxQQKF8oNe_YEGmJr-oJts7ES5gi9orMo1pKCmFb6TYb2Y8H_2G_vIvxF922r2s4cB7tlX0VnzT83rTnUa9wOph-PuoUvH62AaipnYyYfItvXbgIvjb7Uqo87SI5T7tbBw3?purpose=fullsize)
+
+| Component            | Recommended approach                            | Purpose                                           |
+| -------------------- | ----------------------------------------------- | ------------------------------------------------- |
+| Baseline model       | Word + character TF-IDF and Logistic Regression | Fast, interpretable starting point                |
+| Baseline alternative | Word + character TF-IDF and Linear SVM          | Compare against Logistic Regression               |
+| Advanced features    | Multilingual sentence embeddings                | Capture semantic similarities                     |
+| Advanced classifier  | Embeddings + Logistic Regression                | Detect suspicious messages with different wording |
+| Data handling        | Pandas and scikit-learn                         | Clean, split, and prepare data                    |
+| Evaluation           | Precision, recall, F1, PR-AUC                   | Measure scam-detection performance                |
+| Drift monitoring     | Feature-distribution and confidence monitoring  | Detect changing input patterns                    |
+| Deployment           | FastAPI + Streamlit + SQLite                    | Serve predictions and monitor them                |
+
+**Important:** Multilingual embeddings do not automatically guarantee accurate Sinhala or Singlish scam detection. We must evaluate those languages separately.
+
+## Why not train a neural network from scratch?
+
+You have only six hours to build the complete product.
+
+Training a multilingual neural network from scratch would require substantially more data and time. Using an existing multilingual embedding model lets us reuse learned language representations and train a relatively small classifier on top.
+
+For the baseline, TF-IDF is even faster and requires no GPU.
+
+---
+
+# 2. Recommended datasets
+
+Your project needs data representing two different things:
+
+* General job advertisements, including fraudulent advertisements.
+* Overseas recruitment scams that resemble the situations Sri Lankan job seekers encounter.
+
+No single dataset is guaranteed to cover both adequately.
+
+I recommend combining a public dataset with a carefully designed Sri Lankan dataset.
+
+## Dataset 1 — Employment Scam Aegean Dataset (EMSCAD)
+
+**My first choice for the baseline.**
+
+[EMSCAD dataset on Hugging Face](https://huggingface.co/datasets/victor/real-or-fake-fake-jobposting-prediction?utm_source=chatgpt.com)
+
+This dataset contains approximately 17,880 job advertisements with a binary fraud label.
+
+| Property                      | Details                             |
+| ----------------------------- | ----------------------------------- |
+| Number of records             | 17,880                              |
+| Fraudulent advertisements     | Approximately 866                   |
+| Legitimate advertisements     | Approximately 17,014                |
+| Format                        | CSV                                 |
+| Licence shown by Hugging Face | CC0-1.0                             |
+| Main language                 | English                             |
+| Main purpose                  | General job-posting fraud detection |
+
+The dataset includes fields such as:
+
+* `title`
+* `location`
+* `company_profile`
+* `description`
+* `requirements`
+* `benefits`
+* `employment_type`
+* `industry`
+* `fraudulent`
+
+The `fraudulent` column is the target variable: `1` represents a fraudulent posting and `0` represents a legitimate posting. ([Hugging Face][1])
+
+### Why this dataset is useful
+
+It provides a real starting point for learning how legitimate and fraudulent recruitment advertisements differ.
+
+It also lets us evaluate a classifier against previously unseen examples rather than relying exclusively on examples we created ourselves.
+
+### Its limitation
+
+This dataset does not specifically represent Sri Lankan overseas recruitment.
+
+A model trained exclusively on it may not recognize scams involving:
+
+* Alleged Korean or Japanese employment opportunities.
+* Requests for upfront recruitment fees.
+* Fake overseas visa offers.
+* Recruitment advertisements written in Singlish.
+* Sinhala or Tamil scam messages.
+
+We should treat EMSCAD as our **general English recruitment-fraud dataset**, not as proof that the system can reliably detect Sri Lankan recruitment scams.
+
+### How to download it
+
+You can use the dataset page above, or download the CSV programmatically.
+
+In Google Colab, run:
+
+```python
+!pip -q install pandas scikit-learn huggingface_hub
+```
+
+Then:
+
+```python
+from huggingface_hub import hf_hub_download
+import pandas as pd
+
+csv_path = hf_hub_download(
+    repo_id="victor/real-or-fake-fake-jobposting-prediction",
+    filename="fake_job_postings.csv",
+    repo_type="dataset"
+)
+
+df = pd.read_csv(csv_path)
+
+print("Dataset shape:", df.shape)
+print(df.columns.tolist())
+print(df["fraudulent"].value_counts())
+```
+
+This downloads the CSV from the dataset repository and loads it into Pandas.
+
+The dataset is approximately 50 MB, so downloading it should be manageable with a reasonable internet connection. ([Hugging Face][2])
+
+---
+
+## Dataset 2 — Sri Lankan Overseas Recruitment Scam Dataset
+
+**This is the most important dataset for your actual problem.**
+
+I recommend creating a small, documented dataset specifically for JobShield LK.
+
+The competition rules allow teams to write examples manually or generate synthetic examples, provided the sources and generation methods are documented. They also prohibit real personal data and require separate held-out and shifted datasets. 
+
+This means you can create realistic training examples without collecting private WhatsApp conversations or identifiable social-media posts.
+
+### Suggested initial dataset
+
+For a six-hour competition, aim for approximately 1,000–2,000 carefully designed synthetic examples if time permits.
+
+This is a practical target, not a guarantee that the resulting model will be sufficiently accurate.
+
+| Category                                | Initial target |
+| --------------------------------------- | -------------: |
+| Legitimate overseas-job advertisements  |            400 |
+| Fake overseas-job advertisements        |            400 |
+| Legitimate recruitment-related messages |            200 |
+| Suspicious recruitment messages         |            200 |
+| **Total**                               |      **1,200** |
+
+You can expand the dataset if the team has time.
+
+Include English, Sinhala, and Singlish examples in both classes.
+
+These numbers are initial planning targets. We should adjust them based on the quality of the examples, available time, and evaluation results.
+
+### Example dataset format
+
+Create a CSV with the following columns:
+
+| text                                                                               | label | language | scam_type   | source_type |
+| ---------------------------------------------------------------------------------- | ----: | -------- | ----------- | ----------- |
+| Synthetic legitimate job advertisement for a verified recruitment channel          |     0 | English  | none        | synthetic   |
+| Synthetic advertisement requesting an upfront payment for an overseas job          |     1 | English  | upfront_fee | synthetic   |
+| Synthetic Sinhala-language overseas recruitment announcement                       |     0 | Sinhala  | none        | synthetic   |
+| Synthetic Singlish message promising guaranteed foreign employment after a deposit |     1 | Singlish | upfront_fee | synthetic   |
+
+Use these labels consistently:
+
+* `0` = legitimate or no clear evidence of recruitment fraud.
+* `1` = fraudulent or clearly deceptive recruitment offer.
+
+Do not label every advertisement mentioning a fee as fraudulent. The model should learn from the full context, and uncertain examples should be labelled carefully or reserved for human review.
+
+### What kinds of scam examples should you include?
+
+Create examples covering several different tactics:
+
+1. Upfront visa or processing fees.
+2. Fake job guarantees.
+3. False promises of immediate work permits.
+4. Requests to pay a personal account.
+5. Fake government recruitment schemes.
+6. Misleading salary promises.
+7. Fake overseas agency advertisements.
+8. Pressure to pay immediately.
+9. Impersonation of recruitment organizations.
+10. Requests for deposits before providing verifiable job details.
+
+For legitimate examples, include:
+
+* Clear job descriptions.
+* Reasonable qualification requirements.
+* Recruitment processes with verifiable details.
+* Genuine-looking announcements that do not demand suspicious payments.
+* Messages directing applicants to official verification channels.
+
+**Avoid making the dataset too easy.** If every fake advertisement says "pay immediately" and every legitimate advertisement is professionally written, the model may learn superficial writing patterns instead of recognizing broader recruitment risks.
+
+Use fictional organization names, placeholder contact details, and fictional job scenarios.
+
+---
+
+## Dataset 3 — Sri Lanka Bureau of Foreign Employment (SLBFE) reference information
+
+Official reference information can help ground JobShield LK in Sri Lankan recruitment practices.
+
+Start with the official Sri Lanka Bureau of Foreign Employment website:
+
+* [SLBFE official website](https://www.slbfe.lk/?utm_source=chatgpt.com)
+* [SLBFE licensed foreign employment agencies](https://www.slbfe.lk/licensed-foreign-employment-agencies-in-sri-lanka/?utm_source=chatgpt.com)
+* [SLBFE law enforcement information](https://www.slbfe.lk/law-enforcement/?utm_source=chatgpt.com)
+
+The SLBFE provides information about licensed recruitment agencies and its work against illegal recruitment activities. ([SLBFE][3])
+
+### How to use this information
+
+Use official information to develop a separate verification feature.
+
+For example, a user could submit a recruitment advertisement and receive two distinct results:
+
+**ML assessment**
+
+* Likely suspicious.
+* No strong evidence of fraud.
+* Requires manual review.
+
+**Verification status**
+
+* Agency found in the available official reference data.
+* Agency not found in the available reference data.
+* Agency identity could not be verified.
+
+Do not automatically classify an advertisement as fraudulent simply because its agency name is missing from your reference data.
+
+Likewise, the existence of an agency in an official list does not prove that a particular advertisement is genuine or that the agency's identity has not been impersonated.
+
+**Licence and usage note:** If you incorporate downloaded official data, record its exact source, access date, and applicable reuse conditions. Do not assume every page or document is freely reusable for every purpose.
+
+---
+
+# 3. The most important data-design decision: Prevent data leakage
+
+This is where many student ML projects go wrong.
+
+Suppose your dataset contains these two messages:
+
+**Training example:**
+
+> Japan hotel job available. Pay Rs. 50,000 immediately to secure your position.
+
+**Test example:**
+
+> Hotel work in Japan is available. Send Rs. 50,000 now to reserve your job.
+
+If you generate dozens of nearly identical examples and randomly split them, similar templates can end up in both training and test sets.
+
+Your model may achieve impressive scores without learning how to generalize to genuinely new scams.
+
+### The solution
+
+Divide your data into four distinct groups.
+
+| Dataset           | Purpose                        | Example                                          |
+| ----------------- | ------------------------------ | ------------------------------------------------ |
+| Training set      | Fit the classifier             | Existing job advertisements and scam patterns    |
+| Validation set    | Choose the model and threshold | Different advertisements and wording             |
+| Held-out test set | Final performance evaluation   | Unseen examples                                  |
+| Shifted set       | Demonstrate data drift         | New scam tactics and different language patterns |
+
+A reasonable starting split for the initial labelled dataset is:
+
+* 70% training.
+* 15% validation.
+* 15% held-out test.
+
+The shifted set should be created separately rather than simply taking another random sample from the same pool.
+
+For synthetic examples, create different templates and scenarios for each split. Where feasible, reserve entire template families or scam tactics for validation and testing.
+
+For a stronger demonstration, reserve a specific new tactic for the shifted set, such as a newly worded fake recruitment campaign.
+
+This makes your drift demonstration much more convincing.
+
+---
+
+# 4. My recommended model-training strategy
+
+I recommend building the model in two stages.
+
+## Stage A — Train a TF-IDF baseline
+
+Start here because it is fast, easy to explain, and suitable for a six-hour hackathon.
+
+### Why use both word and character features?
+
+Consider the following messages:
+
+* `Pay a processing fee to secure your overseas job.`
+* `pay processing fee overseas job`
+* `Pay processing fee nowww for Korea job!!!`
+
+Word-level features can capture phrases, while character-level features can help identify spelling variations and unusual word forms.
+
+This can be useful when scam messages use abbreviations, inconsistent spelling, or informal writing.
+
+### Recommended configuration
+
+| Component          | Configuration                            |
+| ------------------ | ---------------------------------------- |
+| Text features      | Word-level TF-IDF                        |
+| Word n-grams       | 1–2                                      |
+| Character features | Character TF-IDF                         |
+| Character n-grams  | 3–5                                      |
+| Classifier         | Logistic Regression                      |
+| Class imbalance    | `class_weight="balanced"`                |
+| Evaluation         | Precision, recall, F1, average precision |
+| Model output       | Saved scikit-learn pipeline              |
+
+A crucial limitation: ordinary word and character TF-IDF features do not provide robust semantic understanding across Sinhala script, Singlish, and English. They are a baseline to compare against, not a guarantee of multilingual performance.
+
+### Baseline training code
+
+This first version trains on EMSCAD so you can establish a reproducible baseline. We will add the Sri Lankan dataset in the next stage.
+
+Run this in Google Colab.
+
+**Cell 1 — Install libraries**
+
+```python
+!pip -q install pandas scikit-learn huggingface_hub joblib
+```
+
+**Cell 2 — Download and prepare the data**
+
+```python
+import pandas as pd
+import numpy as np
+
+from huggingface_hub import hf_hub_download
+
+csv_path = hf_hub_download(
+    repo_id="victor/real-or-fake-fake-jobposting-prediction",
+    filename="fake_job_postings.csv",
+    repo_type="dataset"
+)
+
+df = pd.read_csv(csv_path)
+
+# Combine the main textual fields.
+text_columns = [
+    "title",
+    "company_profile",
+    "description",
+    "requirements",
+    "benefits"
+]
+
+df["text"] = (
+    df[text_columns]
+    .fillna("")
+    .astype(str)
+    .agg(" ".join, axis=1)
+    .str.strip()
+)
+
+df = df[
+    (df["text"].str.len() > 0) &
+    (df["fraudulent"].isin([0, 1]))
+].copy()
+
+df["label"] = df["fraudulent"].astype(int)
+
+print("Total records:", len(df))
+print("\nLabel distribution:")
+print(df["label"].value_counts())
+
+print("\nExample:")
+print(df[["text", "label"]].head(1).to_string(index=False))
+```
+
+**Cell 3 — Create training, validation, and test sets**
+
+```python
+from sklearn.model_selection import train_test_split
+
+# First, separate the held-out test set.
+train_val, test_df = train_test_split(
+    df,
+    test_size=0.15,
+    random_state=42,
+    stratify=df["label"]
+)
+
+# Split the remaining data into training and validation.
+train_df, val_df = train_test_split(
+    train_val,
+    test_size=0.1765,
+    random_state=42,
+    stratify=train_val["label"]
+)
+
+print("Training:", len(train_df))
+print("Validation:", len(val_df))
+print("Test:", len(test_df))
+
+print("\nTraining labels:")
+print(train_df["label"].value_counts())
+```
+
+This produces approximately 70% training, 15% validation, and 15% test data.
+
+For a final, stronger experiment, we should also investigate duplicate or near-duplicate advertisements and use group-aware splitting where necessary.
+
+**Cell 4 — Train the baseline model**
+
+```python
+from sklearn.pipeline import FeatureUnion
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+
+features = FeatureUnion([
+    (
+        "word",
+        TfidfVectorizer(
+            analyzer="word",
+            ngram_range=(1, 2),
+            min_df=2,
+            max_features=100_000,
+            sublinear_tf=True
+        )
+    ),
+    (
+        "char",
+        TfidfVectorizer(
+            analyzer="char",
+            ngram_range=(3, 5),
+            min_df=2,
+            max_features=100_000,
+            sublinear_tf=True
+        )
+    )
+])
+
+baseline_model = Pipeline([
+    ("features", features),
+    (
+        "classifier",
+        LogisticRegression(
+            class_weight="balanced",
+            max_iter=1000,
+            random_state=42
+        )
+    )
+])
+
+baseline_model.fit(
+    train_df["text"],
+    train_df["label"]
+)
+
+print("Baseline training completed.")
+```
+
+**Cell 5 — Evaluate the baseline**
+
+```python
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    average_precision_score,
+    roc_auc_score
+)
+
+X_val = val_df["text"]
+y_val = val_df["label"]
+
+val_predictions = baseline_model.predict(X_val)
+val_scores = baseline_model.predict_proba(X_val)[:, 1]
+
+print(classification_report(
+    y_val,
+    val_predictions,
+    target_names=["Legitimate", "Fraudulent"],
+    digits=4,
+    zero_division=0
+))
+
+print("Confusion matrix:")
+print(confusion_matrix(y_val, val_predictions))
+
+print(
+    "Average precision:",
+    round(average_precision_score(y_val, val_scores), 4)
+)
+
+print(
+    "ROC-AUC:",
+    round(roc_auc_score(y_val, val_scores), 4)
+)
+```
+
+### Which metric matters most?
+
+For JobShield LK, pay particular attention to the fraudulent class.
+
+| Metric            | Why it matters                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| Fraud recall      | How many fraudulent advertisements the model catches                                        |
+| Fraud precision   | How many advertisements flagged as fraudulent really are fraudulent in the labelled dataset |
+| Fraud F1          | Balance between precision and recall                                                        |
+| Average precision | Useful for evaluating the minority fraud class                                              |
+| Confusion matrix  | Shows missed scams and legitimate advertisements incorrectly flagged                        |
+
+EMSCAD is heavily imbalanced: only about 4.8% of its advertisements are fraudulent. Consequently, accuracy alone is insufficient. ([Hugging Face][1])
+
+A model that predicts every advertisement as legitimate would achieve high accuracy on this dataset while failing at the main task.
+
+Also, do not choose a final prediction threshold solely to maximize recall. Excessive false alarms could cause users to ignore warnings. Select the threshold on the validation set according to the intended use, then evaluate the chosen threshold once on the held-out test set.
+
+**Important:** The code above is an initial baseline, not your final competition model. It does not yet evaluate Sri Lankan overseas recruitment or demonstrate drift.
+
+---
+
+# 5. Stage B — Train a multilingual semantic model
+
+After establishing the baseline, we can test your proposed model:
+
+`intfloat/multilingual-e5-small`
+
+Model reference: [multilingual-e5-small on Hugging Face](https://huggingface.co/intfloat/multilingual-e5-small?utm_source=chatgpt.com)
+
+Instead of training a large neural network from scratch, this approach uses the pretrained model to transform text into numerical vectors called **embeddings**.
+
+A classifier then learns to distinguish suspicious and legitimate recruitment content from those vectors.
+
+### Why consider embeddings?
+
+These messages have different wording:
+
+* `Pay a fee to reserve your overseas job.`
+* `Send the processing money first to guarantee placement abroad.`
+
+Word-level features can capture some shared vocabulary. Embeddings can also represent broader semantic relationships, potentially helping when the wording changes.
+
+However, this advantage must be measured. It is not guaranteed that embeddings will outperform TF-IDF on your dataset.
+
+### Recommended training procedure
+
+1. Load the pretrained multilingual embedding model.
+2. Generate embeddings for the training examples.
+3. Train Logistic Regression on those embeddings.
+4. Tune model settings and the decision threshold using validation data.
+5. Evaluate on the held-out test set.
+6. Compare the results with the TF-IDF baseline.
+7. Save the winning model and its associated preprocessing configuration.
+
+For a short hackathon, use **frozen embeddings first** rather than fine-tuning the entire transformer. This is faster and avoids unnecessary complexity.
+
+The model can be used for multiple languages, but we must test English, Sinhala, and Singlish independently. Do not assume that performance on English proves performance on the other two.
+
+---
+
+# 6. How to handle Sinhala and Singlish correctly
+
+This is one of the most important parts of your project.
+
+Your target users may encounter messages such as:
+
+**English**
+
+> Overseas job vacancies available. Pay the registration fee today to secure your position.
+
+**Singlish**
+
+> Korea job ekak sure karaganna ada registration fee eka gewanna.
+
+**Sinhala**
+
+> විදේශ රැකියාවක් ලබා ගැනීම සඳහා අදම ලියාපදිංචි ගාස්තුව ගෙවන්න.
+
+These are illustrative synthetic examples, not evidence that the messages are fraudulent.
+
+Your dataset should include legitimate and fraudulent examples across all supported languages.
+
+### Suggested language coverage
+
+For the initial Sri Lankan dataset, aim for roughly:
+
+| Language       | Suggested share |
+| -------------- | --------------: |
+| English        |             40% |
+| Singlish       |             30% |
+| Sinhala script |             30% |
+
+These proportions are starting targets for dataset construction, not estimates of the actual language distribution of recruitment scams.
+
+Include code-switching, spelling variations, different levels of formality, and legitimate messages that mention fees or overseas employment without being deceptive.
+
+If the model performs well in English but poorly in Sinhala, report that limitation honestly.
+
+---
+
+# 7. Data drift: How to demonstrate that JobShield LK adapts
+
+This is the part that can distinguish your project from a basic text classifier.
+
+Your project should detect changes in scam tactics, not merely classify a few predefined messages.
+
+I recommend creating three separate scenarios.
+
+### Scenario A — Original data
+
+The model learns from examples of conventional overseas-job scams.
+
+Examples involve familiar wording about deposits, visa processing, and job guarantees.
+
+### Scenario B — Shifted data
+
+Introduce examples that use new tactics, such as:
+
+* New destinations.
+* Different fee terminology.
+* New social-media recruitment styles.
+* More Sinhala-English code-switching.
+* Alternative ways of claiming that a position is guaranteed.
+
+Do not simply rewrite every existing message by changing a few words. Reserve different scenarios or template families so the shifted data represents a meaningful change.
+
+### Scenario C — Monitoring and response
+
+The system measures changes in incoming data and raises an alert when a configured drift threshold is exceeded.
+
+For example:
+
+| Signal                | What it measures                                     | Possible response               |
+| --------------------- | ---------------------------------------------------- | ------------------------------- |
+| Input-feature drift   | Changes in text or embedding distributions           | Flag the current data window    |
+| Confidence monitoring | Increase in uncertain predictions                    | Route affected cases for review |
+| Unknown-pattern rate  | Increase in inputs unlike those seen during training | Raise an unfamiliar-input alert |
+| Labelled performance  | Precision and recall on subsequently reviewed cases  | Trigger model reassessment      |
+
+For the first version, I recommend a simple, reproducible drift detector rather than building several complex monitoring algorithms.
+
+You could use a distribution-comparison method such as the Population Stability Index (PSI) for selected numeric features, or a statistical two-sample test for embedding distributions.
+
+A confidence threshold by itself is not a reliable detector of all distribution shifts. A model can be confidently wrong on unfamiliar scams.
+
+**Critical distinction:** Data drift means that incoming data has changed. It does not automatically prove that the model has become less accurate. Use labelled reviewed examples to measure actual performance degradation.
+
+The competition explicitly expects a shifted dataset, a drift signal, and a response such as an alert, safe fallback, human-review route, or retraining trigger. 
+
+---
+
+# 8. Should we train using EMSCAD and synthetic Sri Lankan examples together?
+
+Yes, but carefully.
+
+I recommend the following experiment:
+
+| Experiment | Training data                               | Purpose                                                               |
+| ---------- | ------------------------------------------- | --------------------------------------------------------------------- |
+| E1         | EMSCAD only                                 | Establish the general English baseline                                |
+| E2         | Synthetic Sri Lankan examples only          | Measure how well the classifier learns the locally designed scenarios |
+| E3         | EMSCAD + synthetic Sri Lankan examples      | Test whether combining datasets improves performance                  |
+| E4         | Best candidate + shifted dataset evaluation | Demonstrate robustness monitoring                                     |
+
+For each experiment, use consistent held-out test data and report results separately for English, Sinhala, and Singlish wherever the sample size supports meaningful evaluation.
+
+Because the datasets have different origins and distributions, do not combine all examples indiscriminately and assume the resulting scores represent real-world performance.
+
+Synthetic examples are useful for development and testing, but a model evaluated exclusively on synthetic data has not established real-world effectiveness.
+
+A strong future validation step would be a manually reviewed collection of appropriately licensed or permissioned recruitment examples, with personal information removed and labels assigned using a documented process.
+
+---
+
+# 9. How to save your model for FastAPI
+
+Once we have selected the best baseline, save the entire fitted pipeline rather than only the classifier.
+
+```python
+import joblib
+from pathlib import Path
+
+model_dir = Path("artifacts")
+model_dir.mkdir(exist_ok=True)
+
+joblib.dump(
+    baseline_model,
+    model_dir / "jobshield_tfidf.joblib"
+)
+
+print("Model saved successfully.")
+```
+
+This saves the fitted text feature extractors and classifier together.
+
+Your eventual project structure could be:
+
+```text
+JobShield-LK/
+│
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   ├── train.csv
+│   ├── validation.csv
+│   ├── test.csv
+│   └── shifted.csv
+│
+├── artifacts/
+│   └── jobshield_tfidf.joblib
+│
+├── src/
+│   ├── data_preparation.py
+│   ├── train_baseline.py
+│   ├── train_embeddings.py
+│   ├── evaluate.py
+│   └── drift_monitor.py
+│
+├── api/
+│   └── main.py
+│
+├── dashboard/
+│   └── app.py
+│
+├── monitoring/
+│   └── predictions.db
+│
+├── requirements.txt
+└── README.md
+```
+
+For the semantic model, we would save the embedding model's identifier and revision alongside the fitted classifier and any required preprocessing configuration.
+
+The API should record the model version and prediction score, while redacting message content and avoiding unnecessary storage of potentially sensitive information.
+
+---
+
+# 10. What I recommend doing first
+
+Do not begin by building the complete FastAPI application, dashboard, semantic model, and drift detector simultaneously.
+
+We should proceed in this order:
+
+**Step 1:** Download EMSCAD and inspect its columns, labels, and class distribution.
+
+**Step 2:** Create a clean text field and establish a reproducible train/validation/test split.
+
+**Step 3:** Train the word-plus-character TF-IDF baseline.
+
+**Step 4:** Evaluate the baseline, focusing on fraudulent-class precision, recall, F1, and average precision.
+
+**Step 5:** Create the Sri Lankan synthetic dataset with English, Sinhala, and Singlish examples.
+
+**Step 6:** Compare the baseline trained on EMSCAD alone against the combined-data approach.
+
+**Step 7:** Test the multilingual embedding model only if time and resources permit.
+
+**Step 8:** Build the shifted dataset, monitoring signal, and human-review response.
+
+**Step 9:** Save the model, integrate it into FastAPI, and prepare the demonstration.
+
+Since the competition has a six-hour build window, we should keep the TF-IDF baseline as the fallback if the embedding approach takes too long.
+
+## One question before we continue
+
+**Where do you want to train the model?**
+
+**A. Google Colab** — convenient for notebooks and optional GPU access.
+
+**B. Your ASUS TUF Gaming A15 with RTX 4050** — suitable for local development, although the TF-IDF baseline does not require a GPU.
+
+**C. Directly inside the competition repository** — best if you are already working within the six-hour build window.
+
+Tell me **A, B, or C**. I'll then guide you through the next step, one cell at a time, starting with dataset inspection and keeping the final model compatible with JobShield LK's FastAPI application.
+
+[1]: https://huggingface.co/datasets/victor/real-or-fake-fake-jobposting-prediction?utm_source=chatgpt.com "victor/real-or-fake-fake-jobposting-prediction · Datasets at Hugging Face"
+[2]: https://huggingface.co/datasets/victor/real-or-fake-fake-jobposting-prediction/blob/main/fake_job_postings.csv?utm_source=chatgpt.com "fake_job_postings.csv · victor/real-or-fake-fake-jobposting-prediction at main"
+[3]: https://www.slbfe.lk/licensed-foreign-employment-agencies-in-sri-lanka/?utm_source=chatgpt.com "SLBFE | LICENSED FOREIGN EMPLOYMENT AGENCIES IN SRI LANKA"
