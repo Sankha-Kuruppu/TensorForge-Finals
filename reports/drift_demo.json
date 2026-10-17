@@ -1,0 +1,132 @@
+{
+  "start_model": "v1",
+  "end_model": "v20261017-044411",
+  "reviewed_labels": 300,
+  "phases": [
+    {
+      "phase": "normal",
+      "posts": 100,
+      "decisions": {
+        "legit": 50,
+        "scam": 42,
+        "review": 8
+      },
+      "scams": 45,
+      "scams_missed_silently": 0,
+      "scams_flagged_or_reviewed": 45,
+      "scams_missed_by_model_alone": 0,
+      "drift_level": "OK",
+      "safe_mode": false,
+      "model": "v1",
+      "signals": {
+        "centroid_dist": 0.0015,
+        "confidence_mean": 0.7981,
+        "unknown_rate": 0.04
+      }
+    },
+    {
+      "phase": "shifted",
+      "posts": 400,
+      "decisions": {
+        "review": 265,
+        "scam": 74,
+        "legit": 61
+      },
+      "scams": 243,
+      "scams_missed_silently": 0,
+      "scams_flagged_or_reviewed": 243,
+      "scams_missed_by_model_alone": 101,
+      "drift_level": "ALERT",
+      "safe_mode": true,
+      "model": "v1",
+      "signals": {
+        "centroid_dist": 0.0188,
+        "confidence_mean": 0.6404,
+        "unknown_rate": 0.7
+      }
+    },
+    {
+      "phase": "shifted_after_retrain",
+      "posts": 200,
+      "decisions": {
+        "review": 25,
+        "scam": 104,
+        "legit": 71
+      },
+      "scams": 111,
+      "scams_missed_silently": 0,
+      "scams_flagged_or_reviewed": 111,
+      "scams_missed_by_model_alone": 0,
+      "drift_level": "WARN",
+      "safe_mode": false,
+      "model": "v20261017-044411",
+      "signals": {
+        "centroid_dist": 0.0087,
+        "confidence_mean": 0.7667,
+        "unknown_rate": 0.06
+      }
+    }
+  ],
+  "alerts": [
+    {
+      "id": 5,
+      "ts": "2026-10-17T04:43:45+00:00",
+      "level": "ALERT",
+      "signals": "{\"centroid_dist\": {\"value\": 0.0043, \"limit\": 0.0041, \"baseline\": 0.0016, \"fired\": true}, \"confidence_mean\": {\"value\": 0.7592, \"limit\": 0.6871, \"baseline\": 0.8313, \"fired\": false}, \"unknown_rate\": {\"value\": 0.32, \"limit\": 0.1, \"baseline\": 0.0194, \"fired\": true}}",
+      "message": "ALERT: drift signals fired: centroid_dist, unknown_rate",
+      "model_version": "v1"
+    },
+    {
+      "id": 4,
+      "ts": "2026-10-17T04:43:44+00:00",
+      "level": "WARN",
+      "signals": "{\"centroid_dist\": {\"value\": 0.0017, \"limit\": 0.0041, \"baseline\": 0.0016, \"fired\": false}, \"confidence_mean\": {\"value\": 0.8219, \"limit\": 0.6871, \"baseline\": 0.8313, \"fired\": false}, \"unknown_rate\": {\"value\": 0.12, \"limit\": 0.1, \"baseline\": 0.0194, \"fired\": true}}",
+      "message": "WARN: drift signals fired: unknown_rate",
+      "model_version": "v1"
+    },
+    {
+      "id": 3,
+      "ts": "2026-10-17T04:43:40+00:00",
+      "level": "WARN",
+      "signals": "{\"centroid_dist\": {\"value\": 0.0022, \"limit\": 0.0041, \"baseline\": 0.0016, \"fired\": false}, \"confidence_mean\": {\"value\": 0.7971, \"limit\": 0.6871, \"baseline\": 0.8313, \"fired\": false}, \"unknown_rate\": {\"value\": 0.122, \"limit\": 0.1, \"baseline\": 0.0194, \"fired\": true}}",
+      "message": "WARN: drift signals fired: unknown_rate",
+      "model_version": "v1"
+    },
+    {
+      "id": 2,
+      "ts": "2026-10-17T04:43:40+00:00",
+      "level": "WARN",
+      "signals": "{\"centroid_dist\": {\"value\": 0.0023, \"limit\": 0.0041, \"baseline\": 0.0016, \"fired\": false}, \"confidence_mean\": {\"value\": 0.8026, \"limit\": 0.6871, \"baseline\": 0.8313, \"fired\": false}, \"unknown_rate\": {\"value\": 0.1111, \"limit\": 0.1, \"baseline\": 0.0194, \"fired\": true}}",
+      "message": "WARN: drift signals fired: unknown_rate",
+      "model_version": "v1"
+    },
+    {
+      "id": 1,
+      "ts": "2026-10-17T04:43:39+00:00",
+      "level": "WARN",
+      "signals": "{\"centroid_dist\": {\"value\": 0.003, \"limit\": 0.0041, \"baseline\": 0.0016, \"fired\": false}, \"confidence_mean\": {\"value\": 0.8313, \"limit\": 0.6871, \"baseline\": 0.8313, \"fired\": false}, \"unknown_rate\": {\"value\": 0.12, \"limit\": 0.1, \"baseline\": 0.0194, \"fired\": true}}",
+      "message": "WARN: drift signals fired: unknown_rate",
+      "model_version": "v1"
+    }
+  ],
+  "events": [
+    {
+      "id": 3,
+      "ts": "2026-10-17T04:47:03+00:00",
+      "kind": "champion_challenger",
+      "detail": "{\"champion\": \"v1\", \"challenger\": \"v20261017-044411\", \"test_f1\": [0.9221, 0.9181], \"shifted_holdout_f1\": [0.7292, 0.9865], \"promote\": true}"
+    },
+    {
+      "id": 2,
+      "ts": "2026-10-17T04:44:11+00:00",
+      "kind": "retrain_started",
+      "detail": "{\"reason\": \"drift demo\", \"reviewed\": 300}"
+    },
+    {
+      "id": 1,
+      "ts": "2026-10-17T04:43:45+00:00",
+      "kind": "safe_mode_on",
+      "detail": "{\"model_version\": \"v1\"}"
+    }
+  ]
+}
