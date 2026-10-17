@@ -18,6 +18,7 @@ from jobshield.config import ARTIFACTS_DIR, MODELS_DIR, PROCESSED_DIR, REPORTS_D
 from jobshield.models import ReferenceProfile, build_embedding_clf, build_tfidf, confidence, embed
 
 EMB_CACHE = ARTIFACTS_DIR / "embeddings"
+REVIEWED_WEIGHT = 5.0
 
 
 def load_split(name: str) -> pd.DataFrame:
@@ -85,10 +86,12 @@ def train(extra: str | None = None, version: str | None = None) -> dict:
         train_emb = np.vstack([train_emb, extra_emb])
         print(f"added {len(extra_df)} reviewed examples")
 
+    # recent human-reviewed labels describe today's tactics, so they count more
+    weights = np.where(train_df.source == "reviewed", REVIEWED_WEIGHT, 1.0)
     print("training tfidf...")
-    tfidf = build_tfidf().fit(train_df.text_norm, train_df.label)
+    tfidf = build_tfidf().fit(train_df.text_norm, train_df.label, clf__sample_weight=weights)
     print("training embedding classifier...")
-    emb_clf = build_embedding_clf().fit(train_emb, train_df.label)
+    emb_clf = build_embedding_clf().fit(train_emb, train_df.label, sample_weight=weights)
 
     def predict_all(df, emb):
         pt = tfidf.predict_proba(df.text_norm)[:, 1]
