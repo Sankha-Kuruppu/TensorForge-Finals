@@ -31,8 +31,8 @@ WINDOW = 50
 REVIEW_BAND = 0.25          # confidence below this goes to human review
 SAFE_MODE_REVIEW_BAND = 0.5
 # too few labels teach the wrong lesson (tested: ~100 labels made the model distrust
-# genuine SLBFE-licensed Sinhala posts); ~200+ labels learn the new tactic safely
-MIN_REVIEWS_TO_RETRAIN = 300
+# genuine SLBFE-licensed Sinhala posts); ~250-300 labels learn the new tactic safely
+MIN_REVIEWS_TO_RETRAIN = 250
 RETRY_EXTRA_LABELS = 100    # after a rejected challenger, wait for this many new labels
 AUDIT_RATE = 0.3            # share of confident answers also reviewed during an alert
 MAX_TEST_F1_DROP = 0.02
