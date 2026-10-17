@@ -15,7 +15,10 @@ EMSCAD_URL = (
 )
 EMSCAD_FILE = RAW_DIR / "fake_job_postings.csv"
 
-EMBED_MODEL = "intfloat/multilingual-e5-small"
+EMBED_MODEL_ID = "intfloat/multilingual-e5-small"
+# scripts/download_model.sh saves a local copy here (more reliable on slow networks)
+_LOCAL_EMBED = ARTIFACTS_DIR / "hf" / "multilingual-e5-small"
+EMBED_MODEL = str(_LOCAL_EMBED) if (_LOCAL_EMBED / "model.safetensors").exists() else EMBED_MODEL_ID
 EMBED_MAX_TOKENS = 256
 
 SEED = 42
