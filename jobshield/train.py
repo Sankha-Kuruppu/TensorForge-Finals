@@ -15,6 +15,7 @@ from sklearn.metrics import (average_precision_score, confusion_matrix, f1_score
                              precision_recall_curve, precision_score, recall_score, roc_auc_score)
 
 from jobshield.config import ARTIFACTS_DIR, MODELS_DIR, PROCESSED_DIR, REPORTS_DIR
+from jobshield.features import text_hash
 from jobshield.models import ReferenceProfile, build_embedding_clf, build_tfidf, confidence, embed
 
 EMB_CACHE = ARTIFACTS_DIR / "embeddings"
@@ -26,15 +27,22 @@ def load_split(name: str) -> pd.DataFrame:
 
 
 def cached_embed(name: str, df: pd.DataFrame) -> np.ndarray:
+    """Embeddings cached per text (keyed by hash): only new or changed texts are encoded."""
     EMB_CACHE.mkdir(parents=True, exist_ok=True)
-    path = EMB_CACHE / f"{name}.npy"
-    if path.exists():
-        emb = np.load(path)
-        if len(emb) == len(df):
-            return emb
-    print(f"embedding {name} ({len(df)} texts)...")
-    emb = embed(df.text_norm.tolist(), show_progress=True)
+    path, key_path = EMB_CACHE / f"{name}.npy", EMB_CACHE / f"{name}.keys.json"
+    texts = df.text_norm.tolist()
+    keys = [text_hash(t) for t in texts]
+    known = {}
+    if path.exists() and key_path.exists():
+        known = dict(zip(json.loads(key_path.read_text()), np.load(path)))
+    missing = [i for i, k in enumerate(keys) if k not in known]
+    if missing:
+        print(f"embedding {name}: {len(missing)} of {len(texts)} texts not cached...")
+        for i, e in zip(missing, embed([texts[i] for i in missing], show_progress=True)):
+            known[keys[i]] = e
+    emb = np.vstack([known[k] for k in keys])
     np.save(path, emb)
+    key_path.write_text(json.dumps(keys))
     return emb
 
 
