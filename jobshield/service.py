@@ -36,7 +36,7 @@ log = logging.getLogger("jobshield")
 
 ADVICE = {
     "scam": "High risk of recruitment fraud. Do not pay any fee or send your passport. "
-            "Check the agency licence on the SLBFE website or call the SLBFE hotline.",
+            "Check the agency licence on the SLBFE website or call the SLBFE 1989 hotline.",
     "review": "We could not verify this post. Treat it as suspicious: never pay before you have a "
               "visa and a contract signed at SLBFE. A reviewer will look at it.",
     "legit": "No strong scam signals found. Still verify the agency licence with SLBFE before paying anything.",
