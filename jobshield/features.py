@@ -13,8 +13,9 @@ def normalize(text: str) -> str:
     """Replace contact details with placeholder tokens so the model learns
     the pattern ("asks you to WhatsApp a number") rather than specific values."""
     text = str(text)
-    text = _URL.sub(" URL ", text)
+    # emails first, otherwise the URL rule eats "x.example" and leaves "a.b@" behind
     text = _EMAIL.sub(" EMAIL ", text)
+    text = _URL.sub(" URL ", text)
     text = _PHONE.sub(" PHONE ", text)
     text = _NIC.sub(" NIC ", text)
     return _SPACES.sub(" ", text).strip()
