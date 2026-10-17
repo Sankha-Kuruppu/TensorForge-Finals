@@ -155,28 +155,43 @@ The two models complement each other. TF-IDF is stronger on long English ads, wh
 
 **Honest caveat:** the Sri Lankan posts are synthetic (template-built), so their scores are optimistic even with the phrasing-disjoint split. EMSCAD (real ads) is the more realistic number.
 
-### Under drift (shifted holdout: 295 posts with tomorrow's tactics)
+### Under drift (shifted holdout: 300 posts with tomorrow's tactics, 200 scams)
+
+The shifted holdout is also **phrasing-disjoint**: it is built from shifted-era sentences that never appear in the drift stream the model is retrained on.
 
 | Model | Precision | Recall | F1 |
 |---|---|---|---|
-| v1 ensemble (before) | 1.000 | **0.574** | 0.729 |
-| Retrained challenger (after review + retraining) | 0.973 | **1.000** | **0.987** |
+| v1 ensemble (before) | 1.000 | **0.715** | 0.834 |
+| Retrained challenger (after review + retraining) | 0.985 | **1.000** | **0.993** |
 
-Without monitoring, v1 would silently miss **43% of new-tactic scams**. The retrained model catches them all while staying at test F1 0.918 (v1: 0.922), within the 0.02 promotion tolerance.
+Without monitoring, v1 would silently miss **29% of new-tactic scams**. The retrained challenger catches them all, and its original test F1 also rises from 0.922 to 0.929.
 
 ### End-to-end drift demo (`python scripts/drift_demo.py` → `reports/drift_demo.json`)
 
 | Phase | Drift status | Scams in phase | Model alone would call safe | Called safe by JobShield |
 |---|---|---|---|---|
 | 100 normal posts | 🟢 OK (8% sent to review) | 45 | 0 | 0 |
-| 400 shifted posts | 🔴 ALERT (all 3 signals) | 243 | **101 (42%)** | **0** (routed to review) |
-| 300 reviewed labels → retrain → challenger **promoted** | | | | |
-| 200 new shifted posts | 🟠 WARN (unknown share 70% → 6%) | 111 | **0** | **0** (review rate 12%) |
+| 400 shifted posts | 🔴 ALERT (all 3 signals) | 241 | **95 (39%)** | **0** (routed to review) |
+| 282 reviewed labels → retrain → challenger **promoted** (test F1 0.922 → 0.929, shifted holdout F1 0.834 → 0.993) | | | | |
+| 200 new shifted posts | 🟠 WARN (unknown share 50% → 0%) | 113 | **0** | **0** (review rate 5.5%) |
 
 ### What we learnt while building it (`reports/experiments/`)
 - **Too few reviewed labels teach the wrong lesson.** With about 100 reviewed posts, the challenger learnt "SLBFE wording = scam" (because the new scams copy SLBFE notices) and flagged genuine licensed Sinhala agency posts (test F1 0.92 → 0.85). The champion/challenger gate **rejected** it. With 250–300 labels it learns the real signal (the payment trick) and passes. So retraining waits for 250 labels.
 - **Review queues are biased towards hard cases.** During an alert we also send a random 30% of confident answers to reviewers (audit sampling), so retraining sees both sides.
 - **Drift limits must be calibrated on realistic normal traffic.** Calibrating only on familiar phrasing caused false alarms on normal posts. Limits now come from a separate normal-traffic sample.
+
+## Limitations and next steps
+
+| Limitation | What we do now | Next step |
+|---|---|---|
+| **Sri Lankan posts are synthetic.** Template text is cleaner than real posts, so its scores are optimistic. | Real EMSCAD ads are reported separately (F1 0.82); test and holdout sets use unseen phrasing. | Collect real labelled posts through the SLBFE pilot. The review queue is that collection mechanism. |
+| **23% of real fake ads are missed** (EMSCAD recall 0.77). | Borderline posts go to human review, not "legit"; warning signs are shown on every verdict. | Add EMSCAD metadata features (missing logo, company profile, salary); tune the threshold for recall. |
+| **Retraining needs ~250 reviewed labels.** Fewer taught the wrong lesson. | Champion/challenger gate, audit sampling, retry after 100 more labels. | Active learning: ask reviewers about the most informative posts first. |
+| **Scammers adapt** (spelling tricks, images). | Character n-grams, obfuscated text in the shifted set, per-post unknown-input check. | OCR for screenshot posts; regular red-team updates to the shifted set. |
+| **Window-based drift needs ~25–50 posts** before an alert. | Each unfamiliar post is sent to review immediately, without waiting for the window. | Sequential tests (e.g. CUSUM) for faster alarms. |
+| **No Tamil yet.** | The encoder supports Tamil and language detection recognises Tamil script. | Tamil templates and data. |
+| **Long English ads are cut to 128 tokens** for the embedding model (CPU speed). | TF-IDF reads the full text; the ensemble combines both. | Chunked embeddings or a GPU. |
+| **Demo reviewers are simulated** with synthetic ground truth. | Stated in the dashboard and here. | Real reviewers (SLBFE investigators) in the pilot. |
 
 ## Monitoring and drift response
 
