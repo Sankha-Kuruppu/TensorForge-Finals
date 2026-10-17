@@ -9,14 +9,14 @@ import json
 import sys
 from pathlib import Path
 
-import pandas as pd
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# jobshield first: it loads torch before pandas (Windows DLL order, see jobshield/__init__.py)
 from jobshield.config import ARTIFACTS_DIR, PROCESSED_DIR, REPORTS_DIR  # noqa: E402
+import pandas as pd  # noqa: E402
 from jobshield.features import text_hash  # noqa: E402
 from jobshield.monitoring.store import Store  # noqa: E402
-from jobshield.service import JobShield  # noqa: E402
+from jobshield.service import REGISTRY, JobShield  # noqa: E402
 
 
 def stream(svc, df, labels, tag):
@@ -48,6 +48,8 @@ def stream(svc, df, labels, tag):
 def main():
     db = ARTIFACTS_DIR / "drift_demo.db"
     db.unlink(missing_ok=True)
+    # the demo promotes a challenger; keep the real registry untouched
+    registry_backup = REGISTRY.read_text()
     svc = JobShield(store=Store(db), auto_retrain=False)
     start_version = svc.version
     normal = pd.read_csv(PROCESSED_DIR / "live_normal.csv")
@@ -55,7 +57,7 @@ def main():
     labels, phases = {}, []
 
     phases.append(stream(svc, normal.iloc[:100], labels, "normal"))
-    phases.append(stream(svc, shifted.iloc[:150], labels, "shifted"))
+    phases.append(stream(svc, shifted.iloc[:400], labels, "shifted"))
     alerts = svc.store.alerts()
 
     # human review (simulated with the synthetic ground truth)
@@ -68,13 +70,14 @@ def main():
 
     svc._retrain("drift demo")   # synchronous for the script
     events = svc.store.events()
-    phases.append(stream(svc, shifted.iloc[150:300], labels, "shifted_after_retrain"))
+    phases.append(stream(svc, shifted.iloc[400:600], labels, "shifted_after_retrain"))
 
     out = {"start_model": start_version, "end_model": svc.version, "reviewed_labels": reviewed,
            "phases": phases, "alerts": alerts, "events": events}
     REPORTS_DIR.mkdir(exist_ok=True)
     (REPORTS_DIR / "drift_demo.json").write_text(json.dumps(out, indent=2, default=str))
     print("wrote reports/drift_demo.json")
+    REGISTRY.write_text(registry_backup)
 
 
 if __name__ == "__main__":

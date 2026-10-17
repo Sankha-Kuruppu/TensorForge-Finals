@@ -409,9 +409,19 @@ LANG_MIX = {"current": {"en": 0.5, "si": 0.3, "singlish": 0.2},
 
 
 def _split_pool(items, part):
-    """Phrasing-disjoint split: every 4th item is reserved for the test part."""
+    """Phrasing-disjoint split: every 4th item is reserved for the test part.
+
+    Shifted-era pools are small (3-6 items), so for them the last quarter
+    (at least one item) is held out instead: "shift_train" feeds the drift
+    stream and retraining, "shift_test" builds the shifted holdout.
+    """
     if part == "all":
         return items
+    if part in ("shift_train", "shift_test"):
+        k = max(1, len(items) // 4)
+        if len(items) <= k:
+            return items
+        return items[-k:] if part == "shift_test" else items[:-k]
     test = items[3::4]
     train = [x for i, x in enumerate(items) if i % 4 != 3]
     return test if part == "test" else train
@@ -443,20 +453,20 @@ def _fill(rng, text, ctx):
     )
 
 
-def _impersonation_post(rng, lang):
+def _impersonation_post(rng, lang, part):
     """Shifted-era tactic: copy the wording of an official SLBFE programme notice,
     then add a payment trick and an unofficial channel."""
     official = LEGIT_SHIFT[lang]
-    neutral = [official[i] for i in (2, 4, 5) if i < len(official)]
+    neutral = _split_pool([official[i] for i in (2, 4, 5) if i < len(official)], part)
     lines = [official[0]] + rng.sample(neutral, rng.randint(1, len(neutral)))
-    lines += rng.sample(SCAM_SHIFT[lang]["fee"], 1)
-    lines += rng.sample(SCAM_SHIFT[lang]["contact"], 1)
+    lines += _pick(rng, SCAM_SHIFT[lang]["fee"], part)
+    lines += _pick(rng, SCAM_SHIFT[lang]["contact"], part)
     return lines
 
 
 def _scam_post(rng, lang, era, part):
     if era == "shifted" and rng.random() < 0.5:
-        return _impersonation_post(rng, lang)
+        return _impersonation_post(rng, lang, part)
     p = SCAM[lang]
     s = SCAM_SHIFT[lang] if era == "shifted" else None
     hook_pool = s["hook"] + p["hook"] if s else p["hook"]
@@ -476,7 +486,8 @@ def _scam_post(rng, lang, era, part):
 def _legit_post(rng, lang, era, part):
     if era == "shifted" and rng.random() < 0.5:
         pool = LEGIT_SHIFT[lang]
-        return [pool[0]] + rng.sample(pool[1:], rng.randint(2, len(pool) - 1))
+        rest = _split_pool(pool[1:], part)
+        return [pool[0]] + rng.sample(rest, rng.randint(1, len(rest)))
     p = LEGIT[lang]
     lines = _pick(rng, p["hook"], part)
     lines.append(", ".join(_pick(rng, p["job"], part, rng.randint(1, 2))))

@@ -36,9 +36,9 @@ def build() -> dict[str, pd.DataFrame]:
     sl_train, sl_val = train_test_split(sl_trainval, test_size=0.15, stratify=sl_trainval.label,
                                         random_state=SEED)
     sl_test = generate(400, "current", "test", scam_rate=0.45, seed=SEED + 1)
-    shifted = generate(600, "shifted", "all", scam_rate=0.55, seed=SEED + 2)
-    # separate shifted posts, used only to evaluate a retrained challenger model
-    shifted_holdout = generate(300, "shifted", "all", scam_rate=0.55, seed=SEED + 4)
+    shifted = generate(600, "shifted", "shift_train", scam_rate=0.55, seed=SEED + 2)
+    # separate shifted posts with unseen phrasing, used only to evaluate a retrained challenger
+    shifted_holdout = generate(300, "shifted", "shift_test", scam_rate=0.55, seed=SEED + 4)
     shifted_holdout = shifted_holdout[~shifted_holdout.text.isin(shifted.text)]
     # normal live traffic for the demo (today's tactics, seen and unseen phrasing)
     live_normal = generate(300, "current", "all", scam_rate=0.45, seed=SEED + 3)

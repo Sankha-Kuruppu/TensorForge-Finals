@@ -1,9 +1,11 @@
 """FastAPI service.  Run: uvicorn jobshield.api:app --port 8000"""
 import logging
+import os
 from contextlib import asynccontextmanager
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from jobshield.config import ARTIFACTS_DIR, PROCESSED_DIR
@@ -28,6 +30,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="JobShield LK", version="1.0",
               description="Fake overseas-job post detection with drift monitoring", lifespan=lifespan)
+# allow a separately hosted web UI to call the API from the browser
+app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("JOBSHIELD_CORS", "*").split(","),
+                   allow_methods=["*"], allow_headers=["*"])
 
 
 def svc() -> JobShield:
@@ -117,7 +122,7 @@ def demo_stream(body: StreamIn):
 
 
 @app.post("/demo/auto_review")
-def demo_auto_review(limit: int = 200):
+def demo_auto_review(limit: int = 2000):
     done = 0
     for item in svc().store.review_queue("pending", limit):
         label = state["demo_labels"].get(item["text_hash"])
@@ -133,4 +138,5 @@ def demo_reset():
     svc().store.reset()
     svc().safe_mode = False
     svc().last_level = "OK"
+    svc().last_attempt_labels = 0
     return {"ok": True}
