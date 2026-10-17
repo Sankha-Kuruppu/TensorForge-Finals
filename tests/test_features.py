@@ -1,4 +1,4 @@
-from jobshield.data.sl_generator import SCAM, _split_pool, generate
+from jobshield.data.sl_generator import SCAM, SCAM_SHIFT, _split_pool, generate
 from jobshield.features import detect_lang, normalize, red_flags, redact
 
 
@@ -31,6 +31,13 @@ def test_phrasing_split_is_disjoint():
     for pools in SCAM.values():
         for pool in pools.values():
             assert not set(_split_pool(pool, "train")) & set(_split_pool(pool, "test"))
+
+
+def test_shifted_split_is_disjoint_and_never_empty():
+    for pools in SCAM_SHIFT.values():
+        for pool in pools.values():
+            train, test = _split_pool(pool, "shift_train"), _split_pool(pool, "shift_test")
+            assert train and test and not set(train) & set(test)
 
 
 def test_generator_is_deterministic():
