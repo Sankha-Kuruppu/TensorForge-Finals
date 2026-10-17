@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobShield LK — Safe Overseas Employment Verification</title>
+  
+  <!-- Modern Typography: Outfit (Headings), Inter (Body), Noto Sans Sinhala (Sinhala Script), Noto Sans Tamil (Tamil Script) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js for smooth streaming drift charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="gemini-theme">
+  <!-- GEMINI-STYLE APP SHELL -->
+  <div class="gemini-app-shell">
+    
+    <!-- LEFT SIDEBAR (HIDDEN / COLLAPSIBLE BAR LIKE GEMINI) -->
+    <aside class="gemini-sidebar" id="gemini-sidebar" aria-label="Navigation sidebar">
+      <div class="gemini-sidebar-top">
+        <button type="button" class="gemini-side-btn gemini-brand-btn" id="sidebar-toggle-btn" title="Toggle Sidebar">
+          <i data-lucide="sparkles" class="gemini-sparkle-icon"></i>
+        </button>
+        <button type="button" class="gemini-side-btn gemini-new-btn" id="sidebar-new-check-btn" title="New Job Verification">
+          <i data-lucide="edit-3"></i>
+          <span class="sidebar-text">New verification</span>
+        </button>
+      </div>
+
+      <!-- Main Navigation Icons -->
+      <nav class="gemini-side-nav" role="tablist">
+        <button type="button" class="gemini-nav-item active" data-tab="tab-check" title="Check a Job Post">
+          <i data-lucide="search"></i>
+          <span class="sidebar-text" data-i18n="nav_check">Check a Post</span>
+        </button>
+        <button type="button" class="gemini-nav-item" data-tab="tab-monitor" title="Monitoring & Drift Radar">
+          <i data-lucide="layout-grid"></i>
+          <span class="sidebar-text" data-i18n="nav_monitor">Drift Radar</span>
+        </button>
+        <button type="button" class="gemini-nav-item" data-tab="tab-review" title="Review Queue">
+          <i data-lucide="clock"></i>
+          <span class="sidebar-text" data-i18n="nav_review">Review Queue</span>
+          <span class="sidebar-badge hidden" id="sidebar-review-badge">0</span>
+        </button>
+        <button type="button" class="gemini-nav-item" data-tab="tab-model" title="Model & Registry">
+          <i data-lucide="graduation-cap"></i>
+          <span class="sidebar-text" data-i18n="nav_model">Model & Registry</span>
+        </button>
+        <button type="button" class="gemini-nav-item" id="sidebar-licence-btn" title="SLBFE Agency Registry">
+          <i data-lucide="shield-check"></i>
+          <span class="sidebar-text">SLBFE Licence</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Bottom Icons -->
+      <div class="gemini-sidebar-bottom">
+        <button type="button" class="gemini-side-btn" id="sidebar-settings-btn" title="API Settings">
+          <i data-lucide="settings"></i>
+          <span class="sidebar-text">Settings</span>
+        </button>
+        <button type="button" class="gemini-side-btn gemini-profile-pill" id="sidebar-role-btn" title="Switch Citizen / Officer Role">
+          <div class="gemini-avatar">
+            <i data-lucide="user"></i>
+          </div>
+          <span class="sidebar-text" id="sidebar-role-label">Citizen View</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN VIEWPORT -->
+    <div class="gemini-main-viewport">
+      
+      <!-- MINIMAL TOP BAR -->
+      <header class="gemini-top-header">
+        <div class="top-header-left">
+          <button type="button" class="mobile-menu-btn" id="mobile-sidebar-toggle" title="Menu">
+            <i data-lucide="menu"></i>
+          </button>
+          <span class="gemini-brand-sub">JobShield LK</span>
+        </div>
+
+        <div class="top-header-right">
+          <!-- System Status Pill -->
+          <div class="telemetry-item-gemini" id="ai-status-pill" title="AI Model Status">
+            <span class="status-dot dot-amber" id="ai-status-dot"></span>
+            <span class="status-text-gemini" id="ai-status-text">Calibrating...</span>
+          </div>
+
+          <!-- Language Selection -->
+          <div class="lang-switch-group gemini-lang-group" role="group" aria-label="Language selection">
+            <button class="lang-btn active" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="si">සිං</button>
+            <button class="lang-btn" data-lang="ta">தமிழ்</button>
+          </div>
+
+          <!-- Get App / Hotline Pill Button -->
+          <a href="tel:1989" class="gemini-hotline-pill" title="Call SLBFE Hotline 1989">
+            <i data-lucide="phone-call"></i>
+            <span>1989 Hotline</span>
+          </a>
+
+          <!-- Theme Toggle -->
+          <button class="gemini-icon-action" id="theme-toggle-btn" title="Toggle theme">
+            <i data-lucide="sun" id="theme-icon"></i>
+          </button>
+
+          <!-- Settings Button -->
+          <button class="gemini-icon-action" id="open-settings-btn" title="API Settings">
+            <i data-lucide="settings"></i>
+          </button>
+        </div>
+      </header>
+
+    <!-- Offline API Alert Banner (Graceful & Non-Alarming) -->
+    <div class="offline-banner hidden" id="offline-banner" role="alert">
+      <div class="offline-content">
+        <i data-lucide="wifi-off"></i>
+        <div>
+          <strong data-i18n="offline_title">Verification service is currently offline.</strong>
+          <span data-i18n="offline_desc">Start the backend API with <code>uvicorn jobshield.api:app --port 8000</code> or check your network.</span>
+        </div>
+      </div>
+      <button class="cyber-btn btn-sm btn-secondary" id="retry-conn-btn">
+        <i data-lucide="refresh-cw"></i> Retry Connection
+      </button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ========================================== -->
+    <!-- HERO SECTION (MINIMAL BLACK · SEARCH-FIRST)-->
+    <!-- ========================================== -->
+    <!-- ========================================== -->
+    <!-- GEMINI 4 STYLE HERO SECTION (SIMPLE & CENTERED) -->
+    <!-- ========================================== -->
+    <section class="gemini-hero-section" id="hero-banner">
+      <div class="gemini-hero-container">
+        
+        <!-- Gemini Headline with Web Name -->
+        <h1 class="gemini-hero-title">Look what you can do with JobShield LK</h1>
+
+        <!-- Centered Pill Button -->
+        <button type="button" class="gemini-pill-btn" id="gemini-lets-go-btn">
+          Let's go
+        </button>
+
+        <!-- Centerpiece Search Container -->
+        <div class="gemini-capsule-wrapper">
+          
+          <!-- Input Methods Row (Integrated from former photo card) -->
+          <div class="hero-input-methods-bar">
+            <button type="button" class="hero-method-btn active" id="method-text-btn">
+              <i data-lucide="file-text"></i> <span>Paste Text</span>
+            </button>
+            <button type="button" class="hero-method-btn" id="method-clipboard-btn">
+              <i data-lucide="clipboard-paste"></i> <span>Paste Clipboard</span>
+            </button>
+            <button type="button" class="hero-method-btn" id="method-image-btn">
+              <i data-lucide="image-plus"></i> <span>Upload Screenshot</span>
+              <input type="file" id="hero-file-input" accept="image/*" class="visually-hidden">
+            </button>
+            <button type="button" class="hero-method-btn" id="method-link-btn">
+              <i data-lucide="link"></i> <span>Paste Post Link</span>
+            </button>
+          </div>
+
+          <!-- React Style AI Prompt Box -->
+          <div class="ai-prompt-box" id="hero-ai-prompt-box">
+            
+            <!-- Image File Preview (if screenshot attached) -->
+            <div class="prompt-file-previews hidden" id="hero-file-previews">
+              <div class="file-preview-item" id="hero-img-preview-item">
+                <img id="hero-preview-img" src="" alt="Screenshot preview">
+                <button type="button" class="file-remove-btn" id="hero-remove-file-btn" aria-label="Remove image">
+                  <i data-lucide="x"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Expanding Textarea with Drag & Drop Dropzone -->
+            <div class="prompt-textarea-wrapper" id="textarea-dropzone">
+              <textarea 
+                id="hero-prompt-textarea"
+                class="prompt-textarea"
+                rows="3"
+                placeholder="Paste the job advertisement text, message, or recruitment promise here..."
+                aria-label="Job post text"
+              ></textarea>
+              
+              <!-- Drag & Drop Overlay for Image OCR -->
+              <div class="dropzone-overlay hidden" id="dropzone-overlay">
+                <i data-lucide="upload-cloud"></i>
+                <span>Drop screenshot to extract text</span>
+              </div>
+            </div>
+
+            <!-- Voice visualizer (recording) -->
+            <div class="voice-recorder-bar hidden" id="hero-voice-recorder">
+              <span class="rec-dot"></span>
+              <span class="rec-timer" id="hero-rec-timer">00:00</span>
+            </div>
+
+            <!-- Prompt Bottom Action Bar -->
+            <div class="prompt-action-bar">
+              <div class="action-left-group">
+                <!-- Plus / Attachment Button -->
+                <button type="button" class="prompt-icon-btn" id="hero-upload-clip-btn" title="Add screenshot or file">
+                  <i data-lucide="paperclip"></i>
+                </button>
+
+                <!-- Voice Mic -->
+                <button type="button" class="prompt-icon-btn" id="hero-mic-btn" title="Record voice note">
+                  <i data-lucide="mic"></i>
+                </button>
+
+                <!-- Diamond slit divider -->
+                <div class="custom-prompt-divider" aria-hidden="true"></div>
+
+                <!-- Live Language Detection Chip -->
+                <div class="lang-detector-badge" id="live-lang-badge">
+                  <i data-lucide="languages" class="tiny-icon"></i>
+                  <span id="detected-lang-label">Detected: English</span>
+                </div>
+
+                <!-- Character Counter -->
+                <div class="char-counter">
+                  <span id="char-count">0</span> / 20,000 characters
+                </div>
+              </div>
+
+              <div class="action-right-group">
+                <!-- Clear Button -->
+                <button type="button" class="prompt-clear-btn" id="clear-btn" title="Clear text">
+                  <i data-lucide="trash-2"></i> <span>Clear</span>
+                </button>
+
+                <!-- Submit / Analyze Button -->
+                <button type="button" class="prompt-submit-btn cyber-btn btn-primary" id="hero-prompt-send-btn" disabled>
+                  <i data-lucide="shield-search" class="btn-icon"></i>
+                  <span id="check-btn-text" data-i18n="check_btn">Analyze & Verify Post</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Quick Try Sample Chips (Exact match to requested titles) -->
+          <div class="gemini-quick-samples" id="gemini-samples-row">
+            <button type="button" class="hero-sample-tag" data-sample="scam_en">🚨 Fake Visa Fee (Dubai)</button>
+            <button type="button" class="hero-sample-tag" data-sample="scam_si">🚨 කටාර් Deposit Scam</button>
+            <button type="button" class="hero-sample-tag" data-sample="shifted">⚡ SLBFE QR Tactic</button>
+            <button type="button" class="hero-sample-tag" data-sample="legit">✅ Licensed Agency</button>
+          </div>
+
+          <!-- Hidden Mode Selectors for compatibility -->
+          <div class="hidden">
+            <button type="button" id="hero-mode-search"></button>
+            <button type="button" id="hero-mode-think" class="active-think"></button>
+            <button type="button" id="hero-mode-canvas"></button>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Navigation Tabs (Hidden from main canvas; managed via side hidden bar) -->
+    <nav class="nav-bar hidden" id="main-nav-bar" style="display: none !important;">
+      <div class="nav-tabs" role="tablist">
+        <button class="nav-tab active" data-tab="tab-check" role="tab" aria-selected="true">
+          <i data-lucide="search-check"></i>
+          <span data-i18n="nav_check">Check a Job Post</span>
+        </button>
+        <button class="nav-tab admin-tab hidden" data-tab="tab-monitor" role="tab" aria-selected="false">
+          <i data-lucide="radar"></i>
+          <span data-i18n="nav_monitor">Monitoring & Drift Radar</span>
+          <span class="tab-badge" id="monitor-badge-count">Live</span>
+        </button>
+        <button class="nav-tab admin-tab hidden" data-tab="tab-review" role="tab" aria-selected="false">
+          <i data-lucide="user-check"></i>
+          <span data-i18n="nav_review">Review Queue</span>
+          <span class="tab-badge warning-badge hidden" id="review-pending-badge">0</span>
+        </button>
+        <button class="nav-tab admin-tab hidden" data-tab="tab-model" role="tab" aria-selected="false">
+          <i data-lucide="git-branch"></i>
+          <span data-i18n="nav_model">Model & Registry</span>
+        </button>
+      </div>
+
+      <div class="nav-actions">
+        <span class="model-tag" id="nav-model-ver-tag">Model: v1</span>
+      </div>
+    </nav>
+
+    <!-- ========================================== -->
+    <!-- MAIN CONTENT AREA                          -->
+    <!-- ========================================== -->
+    <main class="main-content">
+      
+      <!-- ========================================== -->
+      <!-- SCREEN 1: CHECK A POST (JOB SEEKER VIEW)   -->
+      <!-- ========================================== -->
+      <section id="tab-check" class="tab-panel active" role="tabpanel">
+        
+        <div class="checker-layout">
+          
+          <!-- LEFT COLUMN: VERIFICATION TOOLS & HISTORY -->
+          <div class="checker-left-col">
+            
+            <!-- Safe Mode Notice (dynamic) -->
+            <div class="alert-box alert-warning hidden" id="checker-safemode-notice">
+              <i data-lucide="shield-alert"></i>
+              <div>
+                <strong>Heightened caution mode is active:</strong> System detected shifting scam tactics. Suspicious fee patterns will undergo extra verification.
+              </div>
+            </div>
+
+            <!-- SLBFE Agency Licence Lookup Tool & Recent Checks -->
+            <div class="checker-tools-row">
+              <!-- Quick Licence Verifier Card -->
+              <div class="cyber-card licence-tool-card">
+                <div class="tool-header">
+                  <i data-lucide="file-badge"></i>
+                  <div>
+                    <h3 class="tool-title" data-i18n="licence_title">Verify SLBFE Agency Licence</h3>
+                    <p class="tool-desc" data-i18n="licence_desc">Check if the recruitment agency is registered with the Bureau.</p>
+                  </div>
+                </div>
+                <div class="licence-input-wrap">
+                  <input type="text" id="licence-input" class="cyber-input" placeholder="e.g. 2101 or Ceylon Horizon" aria-label="Agency licence number">
+                  <button class="cyber-btn btn-sm btn-secondary" id="check-licence-btn" type="button">Verify</button>
+                </div>
+                <div class="licence-result-msg hidden" id="licence-result-box"></div>
+              </div>
+
+              <!-- Quick Recent Checks History -->
+              <div class="cyber-card recent-checks-card">
+                <div class="tool-header">
+                  <i data-lucide="history"></i>
+                  <div>
+                    <h3 class="tool-title">Your Recent Checks</h3>
+                    <p class="tool-desc">Stored privately in your browser.</p>
+                  </div>
+                </div>
+                <div class="recent-chips-list" id="recent-checks-list">
+                  <span class="empty-recent-text">No recent checks yet.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT COLUMN: RESULTS OR HOW IT WORKS / TIPS -->
+          <div class="checker-right-col">
+            
+            <!-- Scanning Animation Container (Active during 0.7s check) -->
+            <div class="cyber-card scanning-card hidden" id="scanning-indicator">
+              <div class="scanner-visual">
+                <div class="scanner-grid"></div>
+                <div class="scanner-beam"></div>
+                <i data-lucide="shield" class="scanner-icon"></i>
+              </div>
+              <h3 class="scanner-title">Inspecting Offer Signals...</h3>
+              <p class="scanner-sub">Checking multilingual embeddings, fee extraction, and recruiter licence markers.</p>
+            </div>
+
+            <!-- 1. Idle State: How it Works & 3 Safety Rules -->
+            <div class="idle-guidance-container" id="result-idle-state">
+              
+              <!-- How it works Stepper -->
+              <div class="cyber-card stepper-card">
+                <h3 class="card-title"><i data-lucide="info"></i> How JobShield Protects You</h3>
+                <div class="stepper-list">
+                  <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                      <strong>Paste or Upload Offer</strong>
+                      <p>Drop the message or screenshot. Personal details like phone numbers and names are redacted instantly.</p>
+                    </div>
+                  </div>
+                  <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                      <strong>Multilingual Pattern Match</strong>
+                      <p>Trained on thousands of genuine and fake posts across Sinhala, Singlish, and English.</p>
+                    </div>
+                  </div>
+                  <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                      <strong>Clear Safety Guidance</strong>
+                      <p>Get a simple safety verdict and one-click steps to verify or report to the SLBFE.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3 Crucial Safety Tips Card -->
+              <div class="cyber-card safety-tips-card">
+                <h3 class="card-title text-amber"><i data-lucide="alert-octagon"></i> 3 Rules to Avoid Overseas Job Scams</h3>
+                <ul class="safety-rules-list">
+                  <li>
+                    <span class="rule-icon"><i data-lucide="x"></i></span>
+                    <div>
+                      <strong>Never pay upfront fees to personal accounts:</strong> Genuine agencies only collect approved fees with official printed receipts after visa issuance.
+                    </div>
+                  </li>
+                  <li>
+                    <span class="rule-icon"><i data-lucide="x"></i></span>
+                    <div>
+                      <strong>Beware of "100% Guaranteed Visas":</strong> No third party or agent can guarantee foreign government visa approvals without official interviews.
+                    </div>
+                  </li>
+                  <li>
+                    <span class="rule-icon"><i data-lucide="check"></i></span>
+                    <div>
+                      <strong>Always call 1989:</strong> Before handing over money or your passport, call the SLBFE 24/7 hotline 1989 to verify the agent's licence.
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+
+            <!-- 2. Active Result Panel (Presented When Checked) -->
+            <div class="cyber-card check-result-card result-content hidden" id="result-active-state">
+              
+              <!-- Result Verdict Banner with High Contrast & Clear Icon -->
+              <div class="verdict-banner" id="verdict-banner">
+                <div class="verdict-icon-wrap" id="verdict-icon">
+                  <i data-lucide="alert-octagon"></i>
+                </div>
+                <div class="verdict-text-wrap">
+                  <div class="verdict-tag" id="verdict-tag">ASSESSMENT RESULT</div>
+                  <h3 class="verdict-heading" id="verdict-heading">High Risk: Likely Scam</h3>
+                  <p class="verdict-summary" id="verdict-summary">This post exhibits known recruitment fraud tactics.</p>
+                </div>
+              </div>
+
+              <!-- Animated Risk Gauge & Metrics -->
+              <div class="risk-gauge-container">
+                <div class="gauge-header">
+                  <span class="gauge-label">Fraud Probability Gauge</span>
+                  <span class="gauge-score-value" id="scam-prob-val">0.0%</span>
+                </div>
+                <div class="risk-bar-track">
+                  <div class="risk-bar-fill" id="scam-prob-bar" style="width: 0%;"></div>
+                  <div class="threshold-indicator" id="threshold-marker" title="Decision Threshold">
+                    <span class="marker-label" id="threshold-val-label">Threshold 56%</span>
+                  </div>
+                </div>
+                <div class="gauge-bands">
+                  <span class="band-safe">Safe (0-30%)</span>
+                  <span class="band-review">Suspicious / Review (30-60%)</span>
+                  <span class="band-danger">High Risk Scam (60-100%)</span>
+                </div>
+              </div>
+
+              <!-- Actionable Advice Card -->
+              <div class="advice-card" id="advice-box">
+                <div class="advice-icon"><i data-lucide="shield-alert"></i></div>
+                <div class="advice-text" id="advice-text">
+                  High risk of recruitment fraud. Do not pay any fee or deposit money to personal bank accounts.
+                </div>
+              </div>
+
+              <!-- Highlighted Post Text (with interactive tooltips) -->
+              <div class="highlighted-text-section">
+                <h4 class="section-label">
+                  <i data-lucide="highlighter"></i> Highlighted Evidence in Post
+                  <span class="highlight-hint">(Click highlighted phrases for explanations)</span>
+                </h4>
+                <div class="highlighted-text-box" id="highlighted-post-content">
+                  <!-- Injected via JS with <mark> tags -->
+                </div>
+              </div>
+
+              <!-- Warning Signs Found (Cards with Severity & Explanations) -->
+              <div class="warning-signs-section">
+                <h4 class="section-label">
+                  <i data-lucide="flag"></i> Warning Signs Detected (<span id="flags-count">0</span>)
+                </h4>
+                <div class="flags-card-grid" id="flags-container">
+                  <!-- Injected via JS -->
+                </div>
+                <div class="no-flags-notice hidden" id="no-flags-notice">
+                  <i data-lucide="check-circle-2"></i> No high-risk red flag phrases detected in this post.
+                </div>
+              </div>
+
+              <!-- Next Steps / Victim Action Buttons -->
+              <div class="victim-actions-panel">
+                <h4 class="section-label"><i data-lucide="life-buoy"></i> Recommended Next Steps</h4>
+                <div class="victim-actions-grid">
+                  <a href="tel:1989" class="cyber-btn btn-danger-neon">
+                    <i data-lucide="phone"></i> Call SLBFE 1989
+                  </a>
+                  <button class="cyber-btn btn-secondary" id="btn-share-whatsapp" type="button">
+                    <i data-lucide="share-2"></i> Share Warning
+                  </button>
+                  <button class="cyber-btn btn-secondary" id="btn-copy-report" type="button">
+                    <i data-lucide="copy"></i> Copy Report
+                  </button>
+                  <button class="cyber-btn btn-outline" id="btn-report-slbfe" type="button">
+                    <i data-lucide="external-link"></i> Report to SLBFE
+                  </button>
+                </div>
+              </div>
+
+              <!-- Technical Inspection Telemetry (Accordion) -->
+              <details class="details-expander" id="details-accordion">
+                <summary class="details-summary">
+                  <i data-lucide="terminal"></i> Technical Inspection & Redaction Audit
+                  <i data-lucide="chevron-down" class="chevron"></i>
+                </summary>
+                <div class="details-body">
+                  <div class="tele-grid">
+                    <div><span class="label">Prediction ID:</span> <code id="detail-id">-</code></div>
+                    <div><span class="label">Model Version:</span> <code id="detail-model">-</code></div>
+                    <div><span class="label">Confidence Score:</span> <code id="detail-conf">-</code></div>
+                    <div><span class="label">Nearest Training Sim:</span> <code id="detail-sim">-</code></div>
+                    <div><span class="label">TF-IDF Model Score:</span> <code id="detail-tfidf">-</code></div>
+                    <div><span class="label">E5 Embedding Score:</span> <code id="detail-embed">-</code></div>
+                  </div>
+
+                  <div class="redacted-preview-box">
+                    <div class="box-label">Privacy-Redacted Text (PDPA No. 9 of 2022 Compliant):</div>
+                    <pre id="detail-redacted">No data</pre>
+                  </div>
+                </div>
+              </details>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SCREEN 2: MONITORING & DRIFT (OFFICER VIEW)    -->
+      <!-- ============================================== -->
+      <section id="tab-monitor" class="tab-panel" role="tabpanel">
+        
+        <!-- Live Monitor Top Bar -->
+        <div class="monitor-top-panel cyber-card">
+          <div class="monitor-status-header">
+            <div class="radar-status-group">
+              <div class="big-status-orb" id="drift-status-orb">
+                <i data-lucide="radio" id="drift-status-icon"></i>
+              </div>
+              <div>
+                <div class="sub-label">DRIFT RADAR STATUS (SLIDING WINDOW: 50)</div>
+                <h2 class="big-status-title" id="drift-status-title">WARMING UP</h2>
+                <div class="status-subtitle" id="drift-status-desc">Collecting initial baseline window traffic...</div>
+              </div>
+            </div>
+
+            <!-- Stats Chips -->
+            <div class="monitor-stat-chips">
+              <div class="stat-chip">
+                <div class="chip-val" id="stat-scam-rate">0%</div>
+                <div class="chip-label">Window Scam Rate</div>
+              </div>
+              <div class="stat-chip">
+                <div class="chip-val" id="stat-review-rate">0%</div>
+                <div class="chip-label">Window Review Rate</div>
+              </div>
+              <div class="stat-chip">
+                <div class="chip-val" id="stat-safe-mode-chip">OFF</div>
+                <div class="chip-label">Safe Mode</div>
+              </div>
+              <div class="stat-chip" id="retrain-indicator-chip">
+                <div class="chip-val" id="stat-retrain-val">IDLE</div>
+                <div class="chip-label">Retraining Pipeline</div>
+              </div>
+            </div>
+
+            <!-- Auto refresh controls -->
+            <div class="polling-controls">
+              <button class="cyber-btn btn-secondary btn-sm" id="manual-refresh-monitor-btn">
+                <i data-lucide="refresh-cw"></i> Refresh
+              </button>
+              <label class="toggle-control">
+                <input type="checkbox" id="auto-poll-checkbox" checked>
+                <span class="slider"></span>
+                <span class="toggle-label">Auto (4s)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Language Mix Bar -->
+          <div class="lang-distribution-bar">
+            <span class="bar-title">Traffic Mix:</span>
+            <div class="stacked-bar" id="lang-stacked-bar">
+              <div class="segment seg-en" style="width: 33%" title="English: 33%">EN 33%</div>
+              <div class="segment seg-si" style="width: 33%" title="Sinhala: 33%">SI 33%</div>
+              <div class="segment seg-singlish" style="width: 34%" title="Singlish: 34%">Singlish 34%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Drift Signal Cards -->
+        <div class="drift-signals-grid">
+          
+          <!-- Signal 1: Input Distribution Shift -->
+          <div class="cyber-card signal-card" id="card-centroid-dist">
+            <div class="signal-card-header">
+              <div class="signal-icon-box"><i data-lucide="git-commit"></i></div>
+              <div class="signal-title-wrap">
+                <div class="signal-meta">SIGNAL 1 · INPUT DRIFT</div>
+                <h3 class="signal-title">Input Distribution Shift</h3>
+              </div>
+              <span class="signal-badge badge-normal" id="badge-centroid-dist">NORMAL</span>
+            </div>
+            <div class="signal-card-body">
+              <div class="signal-metric-row">
+                <div class="metric-block">
+                  <span class="m-label">Current Cosine Dist</span>
+                  <span class="m-val" id="val-centroid-dist">0.0000</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-label">99.5% Limit</span>
+                  <span class="m-val text-muted" id="limit-centroid-dist">0.0041</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-label">Normal Baseline</span>
+                  <span class="m-val text-muted" id="base-centroid-dist">0.0021</span>
+                </div>
+              </div>
+              <div class="signal-progress-track">
+                <div class="signal-progress-fill" id="bar-centroid-dist" style="width: 10%;"></div>
+              </div>
+              <div class="signal-footer-note">Fires when mean embedding drifts away from reference centroid.</div>
+            </div>
+          </div>
+
+          <!-- Signal 2: Mean Confidence -->
+          <div class="cyber-card signal-card" id="card-confidence-mean">
+            <div class="signal-card-header">
+              <div class="signal-icon-box"><i data-lucide="gauge"></i></div>
+              <div class="signal-title-wrap">
+                <div class="signal-meta">SIGNAL 2 · CONFIDENCE DROP</div>
+                <h3 class="signal-title">Mean Confidence</h3>
+              </div>
+              <span class="signal-badge badge-normal" id="badge-confidence-mean">NORMAL</span>
+            </div>
+            <div class="signal-card-body">
+              <div class="signal-metric-row">
+                <div class="metric-block">
+                  <span class="m-label">Window Mean</span>
+                  <span class="m-val" id="val-confidence-mean">0.0000</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-label">Min Limit</span>
+                  <span class="m-val text-muted" id="limit-confidence-mean">0.6871</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-label">Normal Baseline</span>
+                  <span class="m-val text-muted" id="base-confidence-mean">0.7981</span>
+                </div>
+              </div>
+              <div class="signal-progress-track">
+                <div class="signal-progress-fill" id="bar-confidence-mean" style="width: 80%;"></div>
+              </div>
+              <div class="signal-footer-note">Fires when scores cluster around threshold (model becoming uncertain).</div>
+            </div>
+          </div>
+
+          <!-- Signal 3: Unknown Input Share -->
+          <div class="cyber-card signal-card" id="card-unknown-rate">
+            <div class="signal-card-header">
+              <div class="signal-icon-box"><i data-lucide="help-circle"></i></div>
+              <div class="signal-title-wrap">
+                <div class="signal-meta">SIGNAL 3 · NOVEL PATTERNS</div>
+                <h3 class="signal-title">Unknown-Input Share</h3>
+              </div>
+              <span class="signal-badge badge-normal" id="badge-unknown-rate">NORMAL</span>
+            </div>
+            <div class="signal-card-body">
+              <div class="signal-metric-row">
+                <div class="metric-block">
+                  <span class="m-label">Unfamiliar Share</span>
+                  <span class="m-val" id="val-unknown-rate">0.0%</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-label">Max Limit</span>
+                  <span class="m-val text-muted" id="limit-unknown-rate">10.0%</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-label">Normal Baseline</span>
+                  <span class="m-val text-muted" id="base-unknown-rate">3.0%</span>
+                </div>
+              </div>
+              <div class="signal-progress-track">
+                <div class="signal-progress-fill" id="bar-unknown-rate" style="width: 5%;"></div>
+              </div>
+              <div class="signal-footer-note">Fires when posts fail kNN nearest training neighbor similarity check.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Interactive Demo Control Toolbar -->
+        <div class="cyber-card demo-control-bar">
+          <div class="demo-bar-title">
+            <i data-lucide="flask-conical"></i>
+            <div>
+              <strong>Live Drift Demo Controls:</strong> Replay realistic synthetic streams to observe automated drift detection & adaptation.
+            </div>
+          </div>
+          <div class="demo-buttons-group">
+            <button class="cyber-btn btn-outline" id="btn-stream-normal">
+              <i data-lucide="play" class="btn-icon"></i>
+              <span>Stream 60 Normal</span>
+              <span class="btn-subtext" id="offset-normal-label">Offset: 0</span>
+            </button>
+            <button class="cyber-btn btn-warning-neon" id="btn-stream-shifted">
+              <i data-lucide="zap" class="btn-icon"></i>
+              <span>Stream 200 Shifted</span>
+              <span class="btn-subtext" id="offset-shifted-label">Offset: 0 / 600</span>
+            </button>
+            <button class="cyber-btn btn-secondary" id="btn-auto-review">
+              <i data-lucide="users" class="btn-icon"></i>
+              <span>Simulate Reviewers</span>
+            </button>
+            <button class="cyber-btn btn-secondary" id="btn-retrain-now">
+              <i data-lucide="refresh-cw" class="btn-icon"></i>
+              <span>Retrain Now</span>
+            </button>
+            <button class="cyber-btn btn-danger-ghost" id="btn-reset-demo">
+              <i data-lucide="trash-2" class="btn-icon"></i>
+              <span>Reset Demo</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Real-Time Rolling Telemetry Charts -->
+        <div class="charts-grid">
+          <div class="cyber-card chart-card">
+            <div class="card-header">
+              <h3 class="card-title"><i data-lucide="line-chart"></i> Rolling Confidence Trend (20-Post Window)</h3>
+              <span class="chart-tag">Distance from Decision Boundary</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="confidenceChart"></canvas>
+            </div>
+          </div>
+
+          <div class="cyber-card chart-card">
+            <div class="card-header">
+              <h3 class="card-title"><i data-lucide="activity"></i> Training Data Similarity Trend (Nearest kNN)</h3>
+              <span class="chart-tag">Multilingual Embedding Proximity</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="similarityChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tables Grid: Alerts & System Response Events -->
+        <div class="events-grid">
+          <!-- Active Alerts Table -->
+          <div class="cyber-card table-card">
+            <div class="card-header">
+              <h3 class="card-title"><i data-lucide="bell"></i> Drift Alerts Log</h3>
+              <span class="badge-count" id="alerts-count-badge">0</span>
+            </div>
+            <div class="table-scroll">
+              <table class="cyber-table" id="alerts-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Level</th>
+                    <th>Message</th>
+                    <th>Model</th>
+                  </tr>
+                </thead>
+                <tbody id="alerts-table-body">
+                  <tr><td colspan="4" class="empty-cell">No alerts recorded yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Self-Healing Response Events Table -->
+          <div class="cyber-card table-card">
+            <div class="card-header">
+              <h3 class="card-title"><i data-lucide="history"></i> System Response Events</h3>
+              <span class="badge-count" id="events-count-badge">0</span>
+            </div>
+            <div class="table-scroll">
+              <table class="cyber-table" id="events-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Event Kind</th>
+                    <th>Resolution & Metrics</th>
+                  </tr>
+                </thead>
+                <tbody id="events-table-body">
+                  <tr><td colspan="3" class="empty-cell">No system events logged yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SCREEN 3: HUMAN REVIEW QUEUE (OFFICER VIEW)    -->
+      <!-- ============================================== -->
+      <section id="tab-review" class="tab-panel" role="tabpanel">
+        
+        <!-- Queue Header & Counter Stats -->
+        <div class="cyber-card queue-header-card">
+          <div class="queue-title-group">
+            <div class="q-icon-box"><i data-lucide="user-check"></i></div>
+            <div>
+              <h2 class="card-title">SLBFE Investigation & Human Review Queue</h2>
+              <p class="card-desc">Triage suspicious or low-confidence posts. Review decisions become labeled data for model adaptation.</p>
+            </div>
+          </div>
+
+          <div class="queue-counters-bar">
+            <div class="q-counter active" id="filter-pending">
+              <span class="q-count" id="count-pending">0</span>
+              <span class="q-label">Pending Review</span>
+            </div>
+            <div class="q-counter" id="filter-labelled">
+              <span class="q-count" id="count-labelled">0</span>
+              <span class="q-label">Labelled</span>
+            </div>
+            <div class="q-counter" id="filter-used">
+              <span class="q-count" id="count-used">0</span>
+              <span class="q-label">Used in Retraining</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="queue-notice-strip">
+          <i data-lucide="info"></i>
+          <span><strong>Automatic Retraining Policy:</strong> Retraining triggers automatically during drift alerts once 250 reviewed posts are catalogued. Challenger models are promoted with 5× weight on reviewed posts.</span>
+        </div>
+
+        <!-- Review Cards Grid -->
+        <div class="review-cards-container" id="review-cards-list">
+          <div class="queue-empty-state" id="queue-empty-msg">
+            <i data-lucide="check-check" class="empty-icon"></i>
+            <h3>Queue is Empty</h3>
+            <p>No posts currently pending human inspection. Stream shifted posts from the <strong>Monitoring</strong> tab to generate review cases.</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SCREEN 4: MODEL & REGISTRY (OFFICER VIEW)      -->
+      <!-- ============================================== -->
+      <section id="tab-model" class="tab-panel" role="tabpanel">
+        
+        <!-- Serving Champion Specs -->
+        <div class="model-overview-grid">
+          <div class="cyber-card model-spec-card">
+            <div class="spec-header">
+              <i data-lucide="award" class="champion-icon"></i>
+              <div>
+                <span class="sub-label">CURRENT SERVING CHAMPION</span>
+                <h2 class="champ-title" id="champ-version-heading">Model Version: v1</h2>
+              </div>
+            </div>
+            <div class="spec-stats-grid">
+              <div class="spec-stat">
+                <span class="s-label">Decision Threshold</span>
+                <span class="s-val" id="model-threshold">-</span>
+              </div>
+              <div class="spec-stat">
+                <span class="s-label">Trained At</span>
+                <span class="s-val" id="model-trained-at">-</span>
+              </div>
+              <div class="spec-stat">
+                <span class="s-label">Training Set Size</span>
+                <span class="s-val" id="model-train-rows">-</span>
+              </div>
+              <div class="spec-stat">
+                <span class="s-label">Reviewed Samples Used</span>
+                <span class="s-val" id="model-reviewed-rows">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="cyber-card gate-policy-card">
+            <h3 class="card-title"><i data-lucide="shield-check"></i> Champion / Challenger Promotion Gate</h3>
+            <p class="policy-desc">JobShield protects against catastrophic forgetting through automated regression gating:</p>
+            <ul class="policy-list">
+              <li><i data-lucide="check"></i> <strong>Must improve F1</strong> on the unseen shifted holdout set.</li>
+              <li><i data-lucide="check"></i> <strong>Zero regression:</strong> Original test set F1 cannot drop by more than <strong>0.02</strong>.</li>
+              <li><i data-lucide="check"></i> 5× sample weighting assigned to human-verified community labels.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Evaluation Benchmark Matrix -->
+        <div class="cyber-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title"><i data-lucide="table"></i> Evaluation Metrics Matrix (Held-out Test vs Shifted Holdout)</h3>
+              <p class="card-desc">Performance across baseline TF-IDF, Multilingual E5 Small embeddings, and Ensemble voting.</p>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="cyber-table" id="metrics-table">
+              <thead>
+                <tr>
+                  <th>Evaluation Split</th>
+                  <th>Model Architecture</th>
+                  <th>Subset</th>
+                  <th>Samples (n)</th>
+                  <th>Scams</th>
+                  <th>Precision</th>
+                  <th>Recall</th>
+                  <th>F1-Score</th>
+                  <th>PR-AUC</th>
+                </tr>
+              </thead>
+              <tbody id="metrics-table-body">
+                <tr><td colspan="9" class="empty-cell">Loading model metrics...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Model Promotion History Table -->
+        <div class="cyber-card">
+          <div class="card-header">
+            <h3 class="card-title"><i data-lucide="archive"></i> Model Registry & Promotion History</h3>
+          </div>
+          <div class="table-scroll">
+            <table class="cyber-table" id="registry-table">
+              <thead>
+                <tr>
+                  <th>Model Version</th>
+                  <th>Promoted Timestamp</th>
+                  <th>Promotion Decision & Evidence</th>
+                </tr>
+              </thead>
+              <tbody id="registry-table-body">
+                <tr><td colspan="3" class="empty-cell">Loading registry history...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Global App Footer -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <span class="footer-brand">🛡️ <strong>JobShield LK</strong> · TensorForge 2.0 Final-Forge · MIT Open Source</span>
+        <span class="footer-disclaimer" data-i18n="disclaimer">All demo posts are synthetic placeholders. Designed to comply with Sri Lanka PDPA No. 9 of 2022.</span>
+      </div>
+      <div class="footer-right">
+        <span class="footer-help-text" data-i18n="need_help">Suspicious job offer? Report to SLBFE Hotline:</span>
+        <a href="tel:1989" class="slbfe-pill"><i data-lucide="phone-call"></i> 1989 (Toll Free)</a>
+      </div>
+    </footer>
+
+    </div> <!-- close gemini-main-viewport -->
+  </div> <!-- close gemini-app-shell -->
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay hidden" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="cyber-modal">
+      <div class="modal-header">
+        <h3 id="settings-modal-title"><i data-lucide="sliders"></i> Settings & Configuration</h3>
+        <button class="close-modal-btn" id="close-settings-btn" aria-label="Close modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-group">
+          <label for="api-base-url-input" class="form-label">FastAPI Backend Endpoint:</label>
+          <input type="text" id="api-base-url-input" class="cyber-input" value="http://localhost:8000">
+          <p class="field-hint">Default: <code>http://localhost:8000</code>. Ensure backend is running via <code>uvicorn jobshield.api:app --port 8000</code>.</p>
+        </div>
+
+        <div class="settings-group">
+          <label class="form-label">User Role Mode:</label>
+          <div class="radio-toggle-group">
+            <label class="radio-label">
+              <input type="radio" name="user-role" value="citizen" checked>
+              <span>Citizen / Job Seeker (Simplified)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="user-role" value="officer">
+              <span>SLBFE Officer / Admin (Full Telemetry)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="cyber-btn btn-secondary" id="test-conn-btn" type="button">Test Connection</button>
+          <button class="cyber-btn btn-primary" id="save-settings-btn" type="button">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Link Input Modal -->
+  <div class="modal-overlay hidden" id="link-modal" role="dialog" aria-modal="true">
+    <div class="cyber-modal">
+      <div class="modal-header">
+        <h3><i data-lucide="link"></i> Paste Job Post Link</h3>
+        <button class="close-modal-btn" id="close-link-modal-btn"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="field-hint">Enter the Facebook post, TikTok link, or WhatsApp invite URL:</p>
+        <input type="url" id="post-link-input" class="cyber-input" placeholder="https://facebook.com/... or https://tiktok.com/..." value="">
+        <div class="modal-actions" style="margin-top: 16px;">
+          <button class="cyber-btn btn-secondary" id="cancel-link-btn" type="button">Cancel</button>
+          <button class="cyber-btn btn-primary" id="confirm-link-btn" type="button">Inspect Link Content</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Stack -->
+  <div class="toast-stack" id="toast-container" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
